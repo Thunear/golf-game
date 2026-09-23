@@ -261,9 +261,25 @@ what happens when you skip them.
 
 **Layout:** 10 × 20 m field. The first half is a slalom: a 6.5 m log splits the tee strip
 from the rest, with a bumper post in the open half. Across the middle stands **quiz gate 2**
-(full width, three doors). Door B lines up with a 3.6 m hollow log that carries the ball
-straight at the cup, 8 m beyond; doors A and C run into bumper posts 2.6 m behind them.
-A Card ("Dokumentasjon") stands behind the cup end.
+(full width, three doors). Behind it the field is split into three corridors by two 6.5 m
+logs. The middle corridor (door B) holds a 3.6 m hollow log and opens straight into the cup
+room. The side corridors (doors A and C) have a bumper post in the way and are closed off
+from the cup room by a log, except for a 0.7 m slot in the far outer corner, well off the
+door's line. A Card ("Dokumentasjon") stands behind the cup end.
+
+```
++------------------------+
+|        [cup]           |   cup room
++---. +------+------+ .--+   slots in the outer corners
+| A  | |  B  ||  C  |    |
+| o  | | log ||     |  o |   o = bumper posts
+|    | |     ||     |    |
++-A--+-+--B--+---C--+----+   quiz gate
+|  slalom half           |
+```
+
+(The first version had an open second half, so door A dropped the ball almost next to the
+cup. Fixed 2026-09-23.)
 
 **Quiz:** "Hvilken komponent viser en kort melding som forsvinner av seg selv?" A Dialog,
 B Toast (correct), C Table.
@@ -271,8 +287,10 @@ B Toast (correct), C Table.
 **Teaches:** rolling through a tunnel (commit to a line), positioning before a gate.
 Measured: a straight 6 m/s shot into door B goes through the log and into the cup.
 
-**Difficulty:** first par 4 (position, position, tunnel shot, putt). Wrong doors cost a
-bounce off a post and a bank around it.
+**Difficulty:** first par 4 (position, position, tunnel shot, putt). Measured: through door
+A the ball stops in the side corridor 4–6 m from the cup with a log in between; a hard shot
+bounces back out through the door. Getting out costs a precise shot through the slot and a
+4 m putt, so a wrong answer is roughly two strokes.
 
 ### Hull 6 – Vannveien (Par 3) — Built
 

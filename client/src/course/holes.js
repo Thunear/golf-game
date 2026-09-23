@@ -195,7 +195,7 @@ export const COURSE = {
       par: 4,
       intro: 'Les dokumentasjonen, eller ta slalåmen.',
       tee: [-3.5, 0, 8],
-      cup: [0, 0, -8],
+      cup: [0, 0, -8.5],
       pieces: [
         floor(0, 0, 10, 20),
         outline(rect(-5, -10, 5, 10)),
@@ -207,9 +207,18 @@ export const COURSE = {
           answers: ['Dialog', 'Toast', 'Table'],
           correct: 1,
         }),
+        // Behind the gate the field splits into three corridors. The middle one (door B)
+        // holds the hollow log and opens straight into the cup room. The side corridors
+        // (doors A and C) are walled off from the cup room except for a narrow slot in
+        // the far outer corner, off the door's line and behind a post, so a wrong answer
+        // costs a couple of careful strokes.
+        wall(-1.5, 0, -1.5, -6.5),
+        wall(1.5, 0, 1.5, -6.5),
+        wall(-1.5, -6.5, -3.8, -6.5),
+        wall(1.5, -6.5, 3.8, -6.5),
         tunnel(0, -3.2, 3.6, 'n', { r: 0.6 }),
-        bumper(-2.6, -2.6, { r: 0.35 }),
-        bumper(2.6, -2.6, { r: 0.35 }),
+        bumper(-3.25, -3.5, { r: 0.35 }),
+        bumper(3.25, -3.5, { r: 0.35 }),
         card(0, -11.3, 's', {
           y: 2.2,
           title: 'Dokumentasjon',
