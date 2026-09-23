@@ -1,0 +1,24 @@
+# Fallback for Render auto-deploy. Render only redeploys on push by itself when the
+# service is linked to the GitHub repo through the Render GitHub app. If it was created
+# from a plain repo URL instead, create a Deploy Hook in Render (service → Settings →
+# Deploy Hook), store its URL as the repository secret RENDER_DEPLOY_HOOK, and this
+# workflow triggers the deploy after every push to main. Without the secret it does nothing.
+name: Deploy to Render
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Render deploy hook
+        env:
+          HOOK: ${{ secrets.RENDER_DEPLOY_HOOK }}
+        run: |
+          if [ -z "$HOOK" ]; then
+            echo "RENDER_DEPLOY_HOOK secret not set; skipping (Render's own auto-deploy handles it if linked)."
+            exit 0
+          fi
+          curl -fsS -X POST "$HOOK" > /dev/null && echo "Render deploy triggered."
