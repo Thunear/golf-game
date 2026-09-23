@@ -1,0 +1,15 @@
+# Netlify hosts the static client only. The Socket.IO game server needs a
+# long-running Node process, which Netlify does not provide, so it runs elsewhere
+# (see README "Deploying") and the client is pointed at it with VITE_SERVER_URL.
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "20"
+
+# Single-page app: every path serves index.html (query strings such as ?room=ABCD are kept).
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200

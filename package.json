@@ -1,0 +1,23 @@
+{
+  "name": "designsystemet-golf",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": { "node": ">=18" },
+  "description": "Browser multiplayer minigolf inspired by Golf With Your Friends",
+  "scripts": {
+    "dev": "concurrently -k -n server,client -c blue,green \"node server/index.js\" \"vite\"",
+    "build": "vite build",
+    "start": "node server/index.js",
+    "preview": "npm run build && npm start"
+  },
+  "dependencies": {
+    "cannon-es": "^0.20.0",
+    "concurrently": "^9.0.0",
+    "express": "^4.21.0",
+    "socket.io": "^4.8.0",
+    "socket.io-client": "^4.8.0",
+    "three": "^0.170.0",
+    "vite": "^6.0.0"
+  }
+}

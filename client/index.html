@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="nb">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Designsystemet golf</title>
+    <link rel="icon" type="image/svg+xml" href="/logo.svg" />
+    <link rel="stylesheet" href="/src/style.css" />
+  </head>
+  <body>
+    <div id="game-container"></div>
+
+    <!-- Lobby: opprett eller bli med i et rom -->
+    <section id="screen-lobby" class="screen">
+      <div class="card">
+        <h1 class="logo"><img src="/logo.svg" alt="" width="34" height="34" />Designsystemet golf</h1>
+        <p class="tagline">Minigolf med venner, rett i nettleseren.</p>
+        <label class="field">
+          <span>Navnet ditt</span>
+          <input id="name-input" maxlength="16" placeholder="f.eks. Birdie-Bjørn" autocomplete="off" />
+        </label>
+        <button id="btn-create" class="btn primary">Opprett et rom</button>
+        <div class="divider"><span>eller bli med i et</span></div>
+        <div class="row">
+          <input id="code-input" class="code-input" maxlength="4" placeholder="KODE" autocomplete="off" spellcheck="false" />
+          <button id="btn-join" class="btn">Bli med</button>
+        </div>
+        <p id="lobby-error" class="error" hidden></p>
+        <p class="hint">Fungerer best på laptop eller PC med mus eller styreflate.</p>
+      </div>
+    </section>
+
+    <!-- Rom: venter på at verten starter -->
+    <section id="screen-room" class="screen" hidden>
+      <div class="card">
+        <p class="label">Romkode</p>
+        <div class="code-display" id="room-code">ABCD</div>
+        <button id="btn-copy" class="btn small">Kopier invitasjonslenke</button>
+        <p class="label players-label">Spillere</p>
+        <ul id="room-players" class="players"></ul>
+        <div id="host-controls" class="host-controls" hidden>
+          <label class="field inline">
+            <span>Start på</span>
+            <select id="start-hole"></select>
+          </label>
+          <label class="field inline">
+            <span>Antall</span>
+            <select id="hole-count"></select>
+          </label>
+          <button id="btn-start" class="btn primary">Start spillet</button>
+        </div>
+        <p id="waiting-msg" class="hint" hidden>Venter på at verten starter spillet…</p>
+        <button id="btn-leave" class="btn ghost small">Forlat rommet</button>
+      </div>
+    </section>
+
+    <!-- HUD under spilling -->
+    <div id="hud" hidden>
+      <div class="hud-panel hud-hole">
+        <div class="hud-hole-num" id="hud-hole">Hull 1</div>
+        <div class="hud-hole-name" id="hud-hole-name">Første slag</div>
+        <div class="hud-hole-meta"><span id="hud-par">Par 2</span> · <span id="hud-strokes">Slag 0</span></div>
+      </div>
+      <div class="hud-panel hud-timer" id="hud-timer">3:00</div>
+      <div class="hud-panel hud-players" id="hud-players"></div>
+      <div class="hud-bottom">
+        <div class="power" id="power" hidden>
+          <div class="power-fill" id="power-fill"></div>
+        </div>
+        <div class="hud-spectate" id="hud-spectate" hidden>
+          <span class="eye">👁</span>
+          <span>Du ser på</span>
+          <span class="dot" id="hud-spectate-dot"></span>
+          <strong id="hud-spectate-name"></strong>
+          <span class="hint" id="hud-spectate-hint">Tab: neste spiller</span>
+        </div>
+        <div class="hud-status" id="hud-status">Dra fra ballen for å sikte, slipp for å slå</div>
+        <div class="hud-help">Dra fra ballen: sikt · Dra ellers / piltaster: kamera · Rull: zoom · M: lyd av/på</div>
+      </div>
+    </div>
+
+    <!-- Resultater mellom hull og til slutt -->
+    <section id="screen-score" class="screen overlay" hidden>
+      <div class="card wide">
+        <h2 id="score-title">Resultater</h2>
+        <div class="table-wrap"><table id="score-table"></table></div>
+        <p id="score-footer" class="hint"></p>
+        <div class="row center">
+          <button id="btn-again" class="btn primary" hidden>Spill igjen</button>
+          <button id="btn-lobby" class="btn" hidden>Tilbake til lobbyen</button>
+        </div>
+      </div>
+    </section>
+
+    <div id="toasts"></div>
+
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>

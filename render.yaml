@@ -1,0 +1,13 @@
+# Render.com blueprint for the game server (free tier supports WebSockets).
+# The server also serves the built client, so this alone gives you a playable URL.
+services:
+  - type: web
+    name: designsystemet-golf
+    runtime: node
+    plan: free
+    buildCommand: npm ci && npm run build
+    startCommand: npm start
+    healthCheckPath: /
+    envVars:
+      - key: NODE_VERSION
+        value: "20"
