@@ -24,12 +24,12 @@ the par climbs slowly. The player never meets two new things at once.
 | 3 | Stigningen | 4 | Komponenter: build the first building block | Elevation (ramp up and down), **button opens a gate** | A real Button on the green, a Card panel |
 | 4 | Vindmølla | 3 | Iterasjon: design in rounds | Timing (rotating sails) | Sails in the four logo colours |
 | 5 | Tømmerløypa | 4 | Dokumentasjon: read your way through | Tunnels, log slalom, **quiz gate 2** | Toast / Alert / Dialog |
-| 6 | Vannveien | 3 | Universell utforming: no one left behind | Water hazard, narrow bridge | Skip link, contrast |
-| 7 | Portvaktene | 3 | Kvalitetssikring: only good work gets through | Two moving gates in counter-phase | Switch / Toggle group |
+| 6 | Vannveien | 4 | Universell utforming: no one left behind | Water hazard, bent bridge, detour | Skip link button opens the bridge |
+| 7 | Portvaktene | 4 | Kvalitetssikring: only good work gets through | Three moving gates, each faster | Switch |
 | 8 | Slalåmen | 4 | Adopsjon: many teams, one system | Long S-course, tunnel, **quiz gate 3** | Komposisjon (`asChild`) |
 | 9 | Toppen | 4 | Lansering: everything comes together | Ramp up, spinner, ramp down; all mechanics | Themes; the final flag |
 
-Total par: 31.
+Total par: 33.
 
 ### Difficulty ladder
 
@@ -292,37 +292,55 @@ A the ball stops in the side corridor 4–6 m from the cup with a log in between
 bounces back out through the door. Getting out costs a precise shot through the slot and a
 4 m putt, so a wrong answer is roughly two strokes.
 
-### Hull 6 – Vannveien (Par 3) — Built
+### Hull 6 – Vannveien (Par 4) — Built
 
 **Story:** "Universell utforming". Skip link: keyboard users jump straight to the main
 content. Everyone gets there, but the direct route has to be opened.
 
-**Layout:** two 8 m wide rooms separated by 6 m of water. A 1.5 m bridge without rails
-crosses in the middle, closed off by a wooden gate between two stumps. In the first room a
-**Button** reading "Hopp til hovedinnhold" (the real skip link text) lies on the tee line;
-rolling over it opens the gate ("Skip link! Broen er åpen."). The long way is a 1.5 m grass
-strip along the east edge with two stub logs to wriggle past. A Card ("Universell
-utforming") explains the component.
+**Layout:** a 10.5 m wide tee room and cup room separated by an 8 m pond. The direct route
+is a 1.4 m bridge with **two right-angle bends** (north, east, north) and no rails; short logs
+back the two outer bends so a firm shot stops on the bend instead of running off. The bridge
+mouth is closed by a gate; the **Button** "Hopp til hovedinnhold" (the real skip link text)
+lies in line with it three metres before, so you click it on the way. The long way is a 2.5 m
+lane along the east edge behind a log, with two stub logs to slalom past, then across the cup
+room where a post guards the cup, which is tucked into the far left corner. A Card
+("Universell utforming") explains the component.
+
+```
++-------------------------+
+| [cup]  o                | |   cup room (o = post)
++----.......----+----.....| |
+|    :      ==  |    :    | |   bent bridge; == = backstop logs
+|    :  ===.....|  --:    | |   east lane with two stubs
+|    :.....     |    :    | |
++---------#-----+---------+ |   # = gate, button just below it
+|      [Hopp til hovedinnhold]   tee room, tee bottom right
++-------------------------+
+```
 
 **Teaches:** precision under a hazard: water resets the ball to where it was shot from and
-adds a stroke. Measured: a straight 6.5 m/s tee shot clicks the button, crosses the bridge and
-stops 2.7 m from the cup.
+adds a stroke. Measured: 3.6 m/s along the first leg stops on the bend, 6 m/s bounces off the
+backstop and stays on; a diagonal shot still splashes. The east lane passes at 6 m/s.
 
-**Difficulty:** first hazard. Par 3 fair; splashes hurt but do not ruin the hole.
+**Difficulty:** first hazard, par 4 either way: button, two or three bridge shots, putt; or
+lane, corner, across, putt. Splashes hurt but do not ruin the hole.
 
-### Hull 7 – Portvaktene (Par 3) — Built
+### Hull 7 – Portvaktene (Par 4) — Built
 
-**Story:** "Kvalitetssikring". Two reviewers who never agree on timing; only good work gets
-through both.
+**Story:** "Kvalitetssikring". Three reviewers who never agree on timing; only good work gets
+through all of them.
 
-**Layout:** 5 × 24 m lane with two giant **Switch** components across it (`slider` with
-`look: 'switch'`): a white round thumb sliding along a blue pill track, "Av" and "På" at the
-ends, in counter-phase at z = 3 and z = −4. A Card ("Kvalitetssikring") stands behind the cup.
+**Layout:** a hook of three lanes, about 35 m in all: 19 m north (5 m wide), 11 m east
+(5 m wide), 7 m north into the cup room (4 m wide). Each lane has a giant **Switch**
+(`slider` with `look: 'switch'`: white round thumb on a blue pill track, "Av" / "På") sliding
+across it, and each is faster than the last (speeds 1.6, 2.1, 2.6). The second one slides
+north–south across the eastbound lane. A Card ("Kvalitetssikring") stands behind the cup.
 
-**Teaches:** double timing: a single shot must clear both, or the player stages the shot
-between the gates.
+**Teaches:** timing three gates in a row and turning corners between them; the last gate
+leaves only a narrow pass when its thumb is at the side.
 
-**Difficulty:** first hole where a par requires either luck or a deliberate two-stage plan.
+**Difficulty:** par 4 needs one clean pass per lane plus a putt; a blocked ball rolls back
+and costs a stroke.
 
 ### Hull 8 – Slalåmen (Par 4) — Built
 
@@ -378,8 +396,8 @@ Short story beats to show under the hole name when a hole starts. Add as an `int
 | 3 | Første komponent: trykk på knappen for å åpne porten. |
 | 4 | Design skjer i runder. Vent på ditt øyeblikk. |
 | 5 | Les dokumentasjonen, eller ta slalåmen. |
-| 6 | Alle skal fram. Bygg broen. |
-| 7 | To portvakter, én rytme. |
+| 6 | Alle skal fram. Snarveien må åpnes først. |
+| 7 | Tre portvakter, tre rytmer. |
 | 8 | Mange team, ett system. |
 | 9 | Lansering! Alt du har lært, på ett hull. |
 

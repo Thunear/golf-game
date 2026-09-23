@@ -227,32 +227,52 @@ export const COURSE = {
       ],
     },
     {
-      // "Universell utforming". Two rooms split by water. The direct route is a narrow
-      // bridge behind a closed gate; the Skip link button in the first room opens it.
-      // The long way is a fiddly strip along the east edge with two stub logs.
+      // "Universell utforming". A pond splits the tee room from the cup room. The direct
+      // route is a narrow bridge with two right-angle bends and no rails, closed by a gate
+      // that the Skip link button opens (the button sits in line with the bridge, three
+      // metres before it). The long way is a 2.5 m lane along the east edge with two stub
+      // logs, then across the cup room past a post. The cup is tucked into the far left.
       name: 'Vannveien',
-      par: 3,
-      intro: 'Alle skal fram. Bygg broen.',
-      tee: [0, 0, 9],
-      cup: [-2, 0, -7],
+      par: 4,
+      intro: 'Alle skal fram. Snarveien må åpnes først.',
+      tee: [3, 0, 9.5],
+      cup: [-2.8, 0, -6.5],
       pieces: [
-        floor(0, 7, 8, 8),
-        floor(-2.375, 0, 3.25, 6, { mat: 'water' }),
-        floor(0, 0, 1.5, 6),
-        floor(1.625, 0, 1.75, 6, { mat: 'water' }),
-        floor(3.25, 0, 1.5, 6),
-        floor(0, -6, 8, 6),
-        outline(rect(-4, -9, 4, 11)),
-        post(-0.75, 3),
-        post(0.75, 3),
-        gate(-0.75, 3, 0.75, 3, { id: 'skip' }),
-        button(0, 6.2, {
+        // Tee room and cup room span the full width; the east lane joins them.
+        floor(1.25, 8, 10.5, 6),
+        floor(1.25, -5.5, 10.5, 5),
+        floor(5.25, 1, 2.5, 8),
+        // Bent bridge: north, east, north. Short logs back the two outer bends so a
+        // firm shot stops on the bend instead of running off the end; the long
+        // inner edges stay open.
+        floor(-1, 3, 1.4, 4),
+        floor(0.5, 0.3, 4.4, 1.4),
+        floor(2, -1.7, 1.4, 2.6),
+        wall(-1.7, -0.4, -0.3, -0.4),
+        wall(2.7, -0.4, 2.7, 1),
+        // Water fills the rest of the pond.
+        floor(-2.85, 1, 2.3, 8, { mat: 'water' }),
+        floor(1.85, 3, 4.3, 4, { mat: 'water' }),
+        floor(-0.2, -1.7, 3, 2.6, { mat: 'water' }),
+        floor(3.35, -1, 1.3, 4, { mat: 'water' }),
+        outline(rect(-4, -8, 6.5, 11)),
+        // Log between the pond and the east lane.
+        wall(4, 5, 4, -3),
+        post(4, 5),
+        post(4, -3),
+        // Gate at the bridge mouth and the Skip link button in line with it.
+        post(-1.7, 5),
+        post(-0.3, 5),
+        gate(-1.7, 5, -0.3, 5, { id: 'skip' }),
+        button(-1, 8, {
           w: 2.4, d: 1.1, label: 'Hopp til hovedinnhold', opens: 'skip',
           doneLabel: 'Hoppet over', message: 'Skip link! Broen er åpen.',
         }),
-        wall(2.5, 1.4, 3.3, 1.4),
-        wall(3.2, -1.4, 4, -1.4),
-        card(0, -10.3, 's', {
+        // The long way: two stubs in the east lane, a post in the cup room.
+        wall(6.5, 2.5, 5.7, 2.5),
+        wall(4, 0, 4.8, 0),
+        bumper(0.3, -6, { r: 0.35 }),
+        card(1.25, -9.3, 's', {
           y: 2.2,
           title: 'Universell utforming',
           lines: ['Alle skal fram.', 'Skip link lar tastaturbrukere hoppe', 'rett til hovedinnholdet.'],
@@ -261,22 +281,26 @@ export const COURSE = {
       ],
     },
     {
-      // "Kvalitetssikring". A 24 m lane guarded by two giant Switch components whose
-      // thumbs slide across in counter-phase.
+      // "Kvalitetssikring". Three lanes in a hook, each guarded by a giant Switch whose
+      // thumb slides across the lane, every one faster than the last: north up the first
+      // lane, east along the second, north again into the cup room.
       name: 'Portvaktene',
-      par: 3,
-      intro: 'To portvakter, én rytme.',
-      tee: [0, 0, 10],
-      cup: [0, 0, -10],
+      par: 4,
+      intro: 'Tre portvakter, tre rytmer.',
+      tee: [0, 0, 11],
+      cup: [11.5, 0, -11.5],
       pieces: [
-        floor(0, 0, 5, 24),
-        outline(rect(-2.5, -12, 2.5, 12)),
-        slider(0, 3, 1.6, 0.4, 'x', 1.6, 1.6, { look: 'switch', r: 0.5 }),
-        slider(0, -4, 1.6, 0.4, 'x', 1.6, 1.6, { look: 'switch', r: 0.5, phase: Math.PI }),
-        card(0, -13.3, 's', {
+        floor(0, 3.5, 5, 19),
+        floor(8, -3.5, 11, 5),
+        floor(11.5, -9.5, 4, 7),
+        outline([[-2.5, 13], [2.5, 13], [2.5, -1], [13.5, -1], [13.5, -13], [9.5, -13], [9.5, -6], [-2.5, -6]]),
+        slider(0, 5, 1.6, 0.4, 'x', 1.6, 1.6, { look: 'switch', r: 0.5 }),
+        slider(7, -3.5, 1.6, 0.4, 'z', 1.6, 2.1, { look: 'switch', r: 0.5, phase: Math.PI / 2 }),
+        slider(11.5, -8, 1.6, 0.4, 'x', 1.1, 2.6, { look: 'switch', r: 0.45, phase: Math.PI }),
+        card(11.5, -14.3, 's', {
           y: 2.2,
           title: 'Kvalitetssikring',
-          lines: ['To Switch-brytere, én rytme.', 'Bare godt arbeid slipper', 'gjennom begge portvaktene.'],
+          lines: ['Tre Switch-brytere, tre rytmer.', 'Bare godt arbeid slipper', 'gjennom alle portvaktene.'],
         }),
       ],
     },
