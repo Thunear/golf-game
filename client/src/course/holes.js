@@ -112,6 +112,13 @@ export const COURSE = {
         wall(-1.6, -5.5, 1.1, -5.5),
         wall(3.3, -5.5, 5.4, -5.5),
         wall(8.2, -5.5, 9, -5.5),
+        // Two logs split the lower green into three sections, so the exit you took
+        // matters: A comes out in the cup lane; B must go up and around the end of the
+        // first log; C must come back through the gap by the hill and then around.
+        wall(0, -5.5, 0, -10.5),
+        post(0, -10.5),
+        wall(4.5, -13, 4.5, -8),
+        post(4.5, -8),
         // The hill itself
         hill({
           seed: 7,

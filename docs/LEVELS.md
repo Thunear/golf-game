@@ -166,7 +166,12 @@ coloured answer lintels above them and the question board on posts in front. The
 (`chute` pieces) run down through a boulder-and-scrub hill (`hill` piece) to a lower green at
 ground level; from the tee you cannot see where they come out. A (correct, left) exits straight
 in line with the cup, B drifts right and exits 6 m from it, C swings far right and exits about
-10 m away. Short retaining logs close the lower green's mountain side between the exits.
+10 m away. Short retaining logs close the lower green's mountain side between the exits, and
+two internal logs split the lower green into three sections: exit A lands in the cup lane;
+exit B lands behind a 5 m log and has to go up and around its far end; exit C lands behind a
+second log and has to come back through a gap by the hill, cross B's section, and then get
+around the first log. (The first version had one open lower green, so the answer barely
+mattered. Fixed 2026-09-23.)
 
 ```
    upper storey (y = 1.5)            lower storey (y = 0)
@@ -174,7 +179,8 @@ in line with the cup, B drifts right and exits 6 m from it, C swings far right a
         | A    B    C     |  hill    |  [cup]                   |
         | ()   ()   ()    | ======>  |   ^         ^         ^  |
         |   fork room     |          |   A         B         C  |   exits from the hill
-        +-----+     +-----+          +--=====--=====--=====--=====+   (retaining logs between)
+        +-----+     +-----+          +--=====--|====--=|===--=====+   (retaining logs between,
+                                                A      | B    | C         two logs splitting the green)
               |     |
               |  o  |          tee
               +-----+
@@ -189,7 +195,8 @@ into the cup (hole-in-one is possible); B costs one extra stroke, C usually two.
 **Teaches:** reading the course before hitting, committing to a route, and the first change of
 level.
 
-**Difficulty:** par 3 via A, 4 via B, 4 or 5 via C.
+**Difficulty:** par 3 via A (an ace is possible), 4 via B, 5 via C. Measured: a 5 m/s roll
+into A drops into the cup; from B's and C's landing spots a straight putt hits a log.
 
 **Build notes:** `quiz` (board, wall with stump-framed openings, lintels, sensors), `chute`
 (sloped tunnel with a full ring of colliders), `hill` (clustered boulders that avoid the greens
