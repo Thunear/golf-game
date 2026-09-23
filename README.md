@@ -14,6 +14,9 @@ plays the same hole at the same time. Balls don't collide with each other, so no
   design system, Buttons you roll over to open gates, Card panels, Switch gates and a logo
   flag on the finale. See `docs/LEVELS.md`.
 
+**Play it:** https://designsystemet-golf.onrender.com/ (Render free tier; the first visit
+after a quiet spell takes about half a minute while the server wakes up).
+
 ## Running it
 
 ```bash
