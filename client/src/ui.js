@@ -176,7 +176,8 @@ export class UI {
     const sorted = [...state.players].sort((a, b) => total(a) - total(b));
     for (const p of sorted) {
       const row = document.createElement('div');
-      row.className = 'p' + (p.done ? ' done' : '') + (p.id === myId ? ' me' : '') + (p.id === this.spectating ? ' watching' : '');
+      row.className = 'p' + (p.done ? ' done' : '') + (p.id === myId ? ' me' : '') + (p.id === this.spectating ? ' watching' : '') +
+        (p.id === state.turnId ? ' turn' : '');
       row.dataset.id = p.id;
       const dot = document.createElement('span');
       dot.className = 'dot';
@@ -213,7 +214,7 @@ export class UI {
     if (!spec) return;
     this.el.spectateDot.style.background = spec.color;
     this.el.spectateName.textContent = spec.name;
-    this.el.spectateHint.textContent = spec.count > 1 ? 'Tab: neste spiller' : '';
+    this.el.spectateHint.textContent = spec.turn ? `${spec.name} sin tur` : spec.count > 1 ? 'Tab: neste spiller' : '';
     for (const row of this.el.hudPlayers.children) row.classList.toggle('watching', row.dataset.id === spec.id);
   }
 

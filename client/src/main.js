@@ -9,6 +9,7 @@ const net = new Net();
 let game = null;
 let roomState = null;
 let timerHandle = null;
+let shotPending = false; // we have shot and not yet told the server the ball stopped
 
 ui.setHoleOptions(COURSE);
 ui.show('lobby');
@@ -75,6 +76,7 @@ function onGameEvent(type, data) {
     case 'shot':
       ui.setStrokes(data.strokes);
       ui.setStatus('Ruller…');
+      shotPending = true;
       net.sendShot();
       net.sendStrokes(data.strokes);
       break;
@@ -87,12 +89,15 @@ function onGameEvent(type, data) {
       net.sendStrokes(data.strokes);
       break;
     case 'ready':
-      if (data.ready && !game.ball.finished) {
-        const left = MAX_STROKES - game.ball.strokes;
-        ui.setStatus(left <= 3 ? `Dra fra ballen for å sikte · ${left} slag igjen` : 'Dra fra ballen for å sikte, slipp for å slå');
+      // Ball came to rest after our stroke: the turn passes on.
+      if (data.ready && shotPending) {
+        shotPending = false;
+        net.sendRest();
       }
+      if (data.ready && !game.ball.finished && roomState?.turnId === net.id) updateTurnStatus();
       break;
     case 'done':
+      shotPending = false;
       net.sendDone(data.strokes);
       ui.setStrokes(data.strokes);
       if (data.sunk) {
@@ -114,6 +119,24 @@ function onGameEvent(type, data) {
     case 'spectate':
       ui.setSpectate(data);
       break;
+  }
+}
+
+// Status line under the power bar, depending on whose turn it is.
+function updateTurnStatus() {
+  const st = roomState;
+  if (!st || st.state !== 'playing' || !game || game.ball.finished) return;
+  const mine = me();
+  if (mine?.done) return;
+  if (st.turnId === net.id) {
+    if (st.turnPhase === 'rolling') return ui.setStatus('Ruller…');
+    const secs = Math.max(0, Math.ceil((st.turnStartedAt + st.turnTimeMs - net.serverNow()) / 1000));
+    const left = MAX_STROKES - game.ball.strokes;
+    const strokesNote = left <= 3 ? ` · ${left} slag igjen` : '';
+    ui.setStatus(`Din tur! Dra fra ballen for å sikte, slipp for å slå · ${secs} s${strokesNote}`);
+  } else {
+    const who = st.players.find((p) => p.id === st.turnId);
+    ui.setStatus(who ? `Venter på ${who.name}…` : 'Venter…');
   }
 }
 
@@ -149,17 +172,22 @@ net.on('room:state', (state) => {
     case 'playing': {
       const g = ensureGame();
       const mine = me();
-      if (mine) g.setLocalPlayer({ color: mine.color });
+      if (mine) g.setLocalPlayer({ color: mine.color, id: myId });
       if (g.holeIndex !== state.holeIndex || prev?.state !== 'playing') {
         g.startHole(state.holeIndex, state.holeStartAt);
-        ui.setStatus('Dra fra ballen for å sikte, slipp for å slå');
+        shotPending = false;
         ui.setPower(null);
         const hole = COURSE.holes[state.holeIndex];
         ui.toast(`Hull ${state.holeIndex + 1}: ${hole.name} · Par ${hole.par}`, hole.intro);
       }
-      g.setPlaying(true);
+      // One stroke at a time: only the player whose turn it is may shoot.
+      const myTurn = state.turnId === myId && state.turnPhase === 'aim';
+      if (myTurn && !(prev?.turnId === myId && prev?.turnPhase === 'aim') && !mine?.done) ui.toast('Din tur!');
+      g.setPlaying(myTurn);
       g.syncPlayers(state.players, myId);
+      g.setTurn(state.turnId);
       ui.renderHud(state, COURSE, myId);
+      updateTurnStatus();
       ui.show('game');
       startTimer();
       break;
@@ -197,6 +225,7 @@ function startTimer() {
     if (!roomState || roomState.state !== 'playing') return;
     const end = roomState.holeStartAt + roomState.holeTimeMs;
     ui.setTimer((end - net.serverNow()) / 1000);
+    if (roomState.turnId === net.id && roomState.turnPhase === 'aim') updateTurnStatus();
   };
   tick();
   timerHandle = setInterval(tick, 250);

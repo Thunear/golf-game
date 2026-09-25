@@ -219,6 +219,8 @@ select option { color: #111; }
 .hud-spectate .dot { width: 12px; height: 12px; border-radius: 50%; display: inline-block; box-shadow: 0 0 0 2px rgba(255,255,255,0.25); }
 .hud-spectate .hint { color: var(--muted); font-size: 13px; margin-left: 8px; }
 .hud-players .p.watching .name::after { content: ' 👁'; font-size: 12px; }
+.hud-players .p.turn .name { color: var(--accent); }
+.hud-players .p.turn .name::before { content: '▶ '; font-size: 10px; }
 .hud-status {
   background: rgba(10, 18, 13, 0.62); border: 1px solid rgba(255,255,255,0.08);
   padding: 8px 16px; border-radius: 999px; font-size: 14px; backdrop-filter: blur(8px);

@@ -60,6 +60,7 @@ export class Net {
 
   sendBall(p, q) { this.socket.volatile.emit('ball:state', { p, q }); }
   sendShot() { this.socket.emit('ball:shot'); }
+  sendRest() { this.socket.emit('ball:rest'); }
   sendStrokes(strokes) { this.socket.emit('player:strokes', { strokes }); }
   sendDone(strokes) { this.socket.emit('hole:done', { strokes }); }
 }

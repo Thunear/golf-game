@@ -2,7 +2,8 @@
 
 Browser multiplayer minigolf inspired by *Golf With Your Friends*. The UI is in Norwegian
 (bokmål). One person creates a room, shares the 4-letter code (or invite link), and everyone
-plays the same hole at the same time. Balls don't collide with each other, so nobody can block you.
+plays the same hole, one stroke at a time, with the camera following whoever is up. Balls
+don't collide with each other, so nobody can block you.
 
 - **Client**: Three.js rendering, cannon-es physics (each player simulates their own ball),
   procedurally generated textures (no asset downloads), synthesized sound effects.
@@ -72,7 +73,11 @@ For a quick session without deploying, expose your local server with a tunnel su
 ## Rules
 
 - The host picks the starting hole and how many holes to play (up to the end of the course).
-- Everyone plays simultaneously. A hole ends when everyone has finished or after 3 minutes.
+- Play is turn-based: one stroke each, in join order, and everyone watches the ball in play.
+  You have 30 seconds to take your stroke or the turn passes on. Tab / Space lets a spectator
+  look at other balls.
+- A hole ends when everyone has finished or when the hole clock runs out (2 minutes plus
+  45 seconds per player, at most 10 minutes).
 - Stroke limit is 12 per hole. Water and out-of-bounds cost one stroke and put you back where you shot from.
 - Scoreboard after each hole; final standings at the end. The host can replay or return to the lobby.
 - People can join a room mid-game; they simply start on the current hole.

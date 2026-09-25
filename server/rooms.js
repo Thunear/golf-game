@@ -3,8 +3,13 @@
 // Your Friends), and the server simply relays ball positions to the other players.
 
 export const MAX_STROKES = 12;
-const HOLE_TIME_MS = 3 * 60 * 1000;
 const SCOREBOARD_MS = 8000;
+// Turn-based: one stroke each, in join order. A player has TURN_TIME_MS to take the
+// stroke, then the turn is skipped; ROLL_TIME_MS is a safety net if a client never
+// reports its ball at rest. The hole clock grows with the number of players.
+const TURN_TIME_MS = Number(process.env.TURN_TIME_MS) || 30000;
+const ROLL_TIME_MS = Number(process.env.ROLL_TIME_MS) || 25000;
+const holeTimeFor = (players) => Math.min(10 * 60 * 1000, 2 * 60 * 1000 + players * 45 * 1000);
 const MAX_PLAYERS = 12;
 const COLORS = [
   '#ff5252', '#3d8bff', '#3ddc84', '#ffd23f', '#ff7ee8', '#ff9a3d',
@@ -42,7 +47,13 @@ class Room {
     this.startIndex = 0; // first hole of this round (0-based)
     this.holeCount = 9; // how many holes to play from startIndex
     this.holeStartAt = 0;
+    this.holeTimeMs = holeTimeFor(1);
     this.timer = null;
+    // Whose stroke it is, and whether they are still aiming or their ball is rolling.
+    this.turnId = null;
+    this.turnPhase = 'aim'; // aim | rolling
+    this.turnStartedAt = 0;
+    this.turnTimer = null;
   }
 
   pickColor() {
@@ -59,8 +70,12 @@ class Room {
       startIndex: this.startIndex,
       holeCount: this.holeCount,
       holeStartAt: this.holeStartAt,
-      holeTimeMs: HOLE_TIME_MS,
+      holeTimeMs: this.holeTimeMs,
       maxStrokes: MAX_STROKES,
+      turnId: this.turnId,
+      turnPhase: this.turnPhase,
+      turnStartedAt: this.turnStartedAt,
+      turnTimeMs: TURN_TIME_MS,
       serverTime: Date.now(),
       players: [...this.players.values()].map((p) => ({
         id: p.id,
@@ -96,10 +111,8 @@ export class RoomManager {
       socket.to(room.code).volatile.emit('ball:state', { id: socket.id, p: state.p, q: state.q });
     });
 
-    socket.on('ball:shot', () => {
-      const room = this.roomOf(socket);
-      if (room) socket.to(room.code).emit('ball:shot', { id: socket.id });
-    });
+    socket.on('ball:shot', () => this.onShot(socket));
+    socket.on('ball:rest', () => this.onRest(socket));
 
     socket.on('player:strokes', (payload) => {
       const room = this.roomOf(socket);
@@ -179,12 +192,74 @@ export class RoomManager {
     room.state = 'playing';
     room.holeIndex = index;
     room.holeStartAt = Date.now();
+    room.holeTimeMs = holeTimeFor(room.players.size);
     for (const p of room.players.values()) {
       p.strokes = 0;
       p.done = false;
     }
-    room.timer = setTimeout(() => this.endHole(room), HOLE_TIME_MS);
+    room.timer = setTimeout(() => this.endHole(room), room.holeTimeMs);
+    this.setTurn(room, this.playerAfter(room, null));
     this.broadcast(room);
+  }
+
+  // ----- turns -----
+  // Next player who still has to finish, in join order after `fromId`
+  // (or from the start when fromId is null). Falls back to the same player
+  // when nobody else is left.
+  playerAfter(room, fromId) {
+    const order = [...room.players.values()];
+    const n = order.length;
+    if (!n) return null;
+    const idx = order.findIndex((p) => p.id === fromId);
+    const first = idx < 0 ? 0 : 1;
+    for (let k = first; k < first + n; k++) {
+      const p = order[(Math.max(idx, 0) + k) % n];
+      if (!p.done) return p;
+    }
+    return null;
+  }
+
+  setTurn(room, player) {
+    this.clearTurnTimer(room);
+    room.turnId = player?.id ?? null;
+    room.turnPhase = 'aim';
+    room.turnStartedAt = Date.now();
+    if (!player) return;
+    room.turnTimer = setTimeout(() => {
+      // Took too long to shoot: pass the turn on without a stroke.
+      if (room.state === 'playing' && room.turnId === player.id && room.turnPhase === 'aim') this.nextTurn(room);
+    }, TURN_TIME_MS);
+  }
+
+  nextTurn(room) {
+    if (room.state !== 'playing') return;
+    this.setTurn(room, this.playerAfter(room, room.turnId));
+    this.broadcast(room);
+  }
+
+  onShot(socket) {
+    const room = this.roomOf(socket);
+    if (!room || room.state !== 'playing') return;
+    socket.to(room.code).emit('ball:shot', { id: socket.id });
+    if (room.turnId !== socket.id || room.turnPhase !== 'aim') return;
+    this.clearTurnTimer(room);
+    room.turnPhase = 'rolling';
+    room.turnStartedAt = Date.now();
+    room.turnTimer = setTimeout(() => {
+      if (room.state === 'playing' && room.turnId === socket.id && room.turnPhase === 'rolling') this.nextTurn(room);
+    }, ROLL_TIME_MS);
+    this.broadcast(room);
+  }
+
+  onRest(socket) {
+    const room = this.roomOf(socket);
+    if (!room || room.state !== 'playing') return;
+    if (room.turnId === socket.id && room.turnPhase === 'rolling') this.nextTurn(room);
+  }
+
+  clearTurnTimer(room) {
+    if (room.turnTimer) clearTimeout(room.turnTimer);
+    room.turnTimer = null;
   }
 
   holeDone(socket, { strokes }) {
@@ -199,6 +274,7 @@ export class RoomManager {
       strokes: player.strokes,
       sunk: player.strokes < MAX_STROKES,
     });
+    if (room.turnId === socket.id) this.setTurn(room, this.playerAfter(room, socket.id));
     this.broadcast(room);
     this.checkAllDone(room);
   }
@@ -212,6 +288,8 @@ export class RoomManager {
   endHole(room) {
     if (room.state !== 'playing') return;
     this.clearTimer(room);
+    this.clearTurnTimer(room);
+    room.turnId = null;
     for (const p of room.players.values()) {
       if (!p.done) {
         p.done = true;
@@ -229,6 +307,8 @@ export class RoomManager {
     const room = this.roomOf(socket);
     if (!room || room.hostId !== socket.id) return;
     this.clearTimer(room);
+    this.clearTurnTimer(room);
+    room.turnId = null;
     room.state = 'lobby';
     room.holeIndex = -1;
     for (const p of room.players.values()) {
@@ -247,10 +327,13 @@ export class RoomManager {
     socket.data.code = null;
     if (room.players.size === 0) {
       this.clearTimer(room);
+      this.clearTurnTimer(room);
       this.rooms.delete(room.code);
       return;
     }
     if (room.hostId === socket.id) room.hostId = room.players.keys().next().value;
+    // The leaver had the turn: hand it to the next player still going.
+    if (room.state === 'playing' && room.turnId === socket.id) this.setTurn(room, this.playerAfter(room, null));
     this.broadcast(room);
     this.checkAllDone(room);
   }

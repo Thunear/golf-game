@@ -318,9 +318,17 @@ export class Game {
   }
 
   // ---------- public API ----------
-  setLocalPlayer({ color }) {
+  setLocalPlayer({ color, id }) {
     this.ball.color = color;
     this.ball.mesh.material.color.set(color);
+    if (id) this.myId = id;
+  }
+
+  // Turn-based play: whose stroke it is. When it is somebody else's turn the
+  // camera follows their ball.
+  setTurn(turnId) {
+    this.turnId = turnId ?? null;
+    this._refreshSpectate();
   }
 
   setServerClock(fn) {
@@ -459,11 +467,15 @@ export class Game {
     return [...this.remotes.entries()].filter(([, r]) => !r.done).map(([id]) => id);
   }
 
+  _spectateInfo(id) {
+    const r = this.remotes.get(id);
+    return { id, name: r.name, color: r.color, count: this._spectateCandidates().length, turn: id === this.turnId };
+  }
+
   _setSpectate(id) {
     if (this.spectateId === id) return;
     this.spectateId = id;
-    const r = id ? this.remotes.get(id) : null;
-    this.onEvent('spectate', r ? { id, name: r.name, color: r.color, count: this._spectateCandidates().length } : null);
+    this.onEvent('spectate', id && this.remotes.has(id) ? this._spectateInfo(id) : null);
   }
 
   _pickSpectate() {
@@ -487,11 +499,21 @@ export class Game {
   // Called whenever the player list changes: drop a finished/left target, or start
   // spectating if we are done and somebody is still out there.
   _refreshSpectate() {
-    if (!this.ball.finished) return this._setSpectate(null);
+    // Somebody else's turn: follow them.
+    if (this.turnId && this.turnId !== this.myId) {
+      const t = this.remotes.get(this.turnId);
+      if (t && !t.done) {
+        this._setSpectate(this.turnId);
+        this.onEvent('spectate', this._spectateInfo(this.turnId));
+        return;
+      }
+    }
+    // My turn, or still playing with nobody to watch: my own ball.
+    if (this.turnId === this.myId || !this.ball.finished) return this._setSpectate(null);
     const cur = this.spectateId ? this.remotes.get(this.spectateId) : null;
     if (cur && !cur.done) {
-      // Keep following, but refresh the count shown in the banner.
-      this.onEvent('spectate', { id: this.spectateId, name: cur.name, color: cur.color, count: this._spectateCandidates().length });
+      // Keep following, but refresh the banner (count, turn marker).
+      this.onEvent('spectate', this._spectateInfo(this.spectateId));
       return;
     }
     this._pickSpectate();
@@ -570,7 +592,7 @@ export class Game {
       this.keys.add(e.code);
       if (e.code === 'Escape') this._clearAim();
       if (e.code === 'KeyM') this.onEvent('mute', { muted: audio.toggleMute() });
-      if ((e.code === 'Tab' || e.code === 'Space') && this.ball.finished) {
+      if ((e.code === 'Tab' || e.code === 'Space') && !this.playing) {
         e.preventDefault();
         this._cycleSpectate(e.shiftKey ? -1 : 1);
       }
@@ -849,7 +871,7 @@ export class Game {
     this._clearAim();
     this.onEvent('done', { strokes, sunk });
     // Give the sink animation a moment before the camera leaves the cup.
-    setTimeout(() => { if (this.ball.finished) this._pickSpectate(); }, sunk ? 1400 : 300);
+    setTimeout(() => { if (this.ball.finished) this._refreshSpectate(); }, sunk ? 1400 : 300);
   }
 
   _updateRemotes(dt) {
@@ -865,7 +887,7 @@ export class Game {
       else this._placeBlob(r.blob, r.mesh.position, r.groundY);
       // Other balls are ghosted so they never hide your own; the one you are
       // watching is drawn solid.
-      const solid = this.ball.finished && this.spectateId !== null && this.remotes.get(this.spectateId) === r;
+      const solid = this.spectateId !== null && this.remotes.get(this.spectateId) === r;
       r.mesh.material.opacity = solid ? 1 : 0.6;
     }
   }
@@ -897,7 +919,7 @@ export class Game {
   _updateCamera(dt) {
     const b = this.ball;
     let target;
-    const spec = b.finished && this.spectateId ? this.remotes.get(this.spectateId) : null;
+    const spec = this.spectateId ? this.remotes.get(this.spectateId) : null;
     if (spec && !spec.done) target = spec.mesh.position;
     else if (b.finished && this.hole) target = new THREE.Vector3(this.hole.cup.x, this.hole.cup.y, this.hole.cup.z);
     else target = b.mesh.position;
