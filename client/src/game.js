@@ -373,6 +373,7 @@ export class Game {
     // Reset the ball on the tee.
     const ball = this.ball;
     ball.strokes = 0;
+    ball.quizBonus = 0;
     ball.finished = false;
     ball.settleUntil = 0;
     ball.mesh.visible = true;
@@ -758,8 +759,11 @@ export class Game {
         const ok = hit.index === qz.correct;
         qz.reveal();
         if (ok) audio.correct(); else audio.fail();
+        // A correct answer is worth one stroke off this hole (applied when the hole is done).
+        b.quizBonus = ok ? 1 : 0;
+        this.onEvent('quiz', { correct: ok, bonus: b.quizBonus });
         this.onEvent('toast', {
-          message: ok ? 'Riktig! Snarveien ligger rett fram.' : `Ikke helt. Riktig svar var «${qz.answers[qz.correct]}».`,
+          message: ok ? 'Riktig! −1 slag, og snarveien ligger rett fram.' : `Ikke helt. Riktig svar var «${qz.answers[qz.correct]}».`,
         });
       }
     }
@@ -877,7 +881,8 @@ export class Game {
     }
     b.ring.visible = false;
     this._clearAim();
-    this.onEvent('done', { strokes, sunk });
+    const bonus = b.quizBonus ?? 0;
+    this.onEvent('done', { strokes: Math.max(1, strokes - bonus), sunk, bonus, rawStrokes: strokes });
     // Give the sink animation a moment before the camera leaves the cup.
     setTimeout(() => { if (this.ball.finished) this._refreshSpectate(); }, sunk ? 1400 : 300);
   }

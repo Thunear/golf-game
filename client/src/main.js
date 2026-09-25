@@ -10,6 +10,7 @@ let game = null;
 let roomState = null;
 let timerHandle = null;
 let shotPending = false; // we have shot and not yet told the server the ball stopped
+let quizBonus = 0; // strokes taken off this hole for a correct quiz answer
 
 ui.setHoleOptions(COURSE);
 ui.show('lobby');
@@ -74,19 +75,23 @@ function onGameEvent(type, data) {
       ui.setPower(data.power);
       break;
     case 'shot':
-      ui.setStrokes(data.strokes);
+      ui.setStrokes(data.strokes, quizBonus);
       ui.setStatus('Ruller…');
       shotPending = true;
       net.sendShot();
       net.sendStrokes(data.strokes);
       break;
     case 'strokes':
-      ui.setStrokes(data.strokes);
+      ui.setStrokes(data.strokes, quizBonus);
       break;
     case 'penalty':
-      ui.setStrokes(data.strokes);
+      ui.setStrokes(data.strokes, quizBonus);
       ui.toast(data.message);
       net.sendStrokes(data.strokes);
+      break;
+    case 'quiz':
+      quizBonus = data.bonus;
+      ui.setStrokes(game.ball.strokes, quizBonus);
       break;
     case 'ready':
       // Ball came to rest after our stroke: the turn passes on.
@@ -96,17 +101,19 @@ function onGameEvent(type, data) {
       }
       if (data.ready && !game.ball.finished && roomState?.turnId === net.id) updateTurnStatus();
       break;
-    case 'done':
+    case 'done': {
       shotPending = false;
-      net.sendDone(data.strokes);
-      ui.setStrokes(data.strokes);
+      net.sendDone(data.strokes, data.bonus);
+      ui.setStrokes(data.strokes, data.bonus);
+      const bonusNote = data.bonus ? ` ★ Riktig svar: ${data.rawStrokes} − 1 = ${data.strokes}.` : '';
       if (data.sunk) {
         const par = COURSE.holes[roomState?.holeIndex ?? 0]?.par ?? 0;
-        ui.setStatus(`${scoreName(data.strokes, par)} Venter på de andre…`);
+        ui.setStatus(`${scoreName(data.strokes, par)}${bonusNote} Venter på de andre…`);
       } else {
-        ui.setStatus('Slaggrensen er nådd. Venter på de andre…');
+        ui.setStatus(`Slaggrensen er nådd.${bonusNote} Venter på de andre…`);
       }
       break;
+    }
     case 'ball':
       net.sendBall(data.p, data.q);
       break;
@@ -177,6 +184,7 @@ net.on('room:state', (state) => {
       if (g.holeIndex !== state.holeIndex || prev?.state !== 'playing') {
         g.startHole(state.holeIndex, state.holeStartAt);
         shotPending = false;
+        quizBonus = 0;
         ui.setPower(null);
         const hole = COURSE.holes[state.holeIndex];
         ui.toast(`Hull ${state.holeIndex + 1}: ${hole.name} · Par ${hole.par}`, hole.intro);

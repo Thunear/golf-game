@@ -218,8 +218,9 @@ export class UI {
     }
   }
 
-  setStrokes(n) {
-    this.el.hudStrokes.textContent = n === 0 ? 'Ingen slag ennå' : `Slag ${n}`;
+  setStrokes(n, bonus = 0) {
+    const star = bonus ? ' · ★ −1' : '';
+    this.el.hudStrokes.textContent = n === 0 ? `Ingen slag ennå${star}` : `Slag ${n}${star}`;
   }
 
   setPower(p) {
@@ -286,7 +287,8 @@ export class UI {
         let cls = i === state.holeIndex ? 'cur' : '';
         if (s != null && s < par) cls += ' under';
         if (s != null && s > par) cls += ' over';
-        cells.push(`<td class="${cls.trim()}">${s == null ? '–' : s}</td>`);
+        const star = s != null && p.bonuses?.[i] ? '<span class="star" title="Riktig quiz-svar: −1 slag">★</span>' : '';
+        cells.push(`<td class="${cls.trim()}">${s == null ? '–' : s}${star}</td>`);
       }
       const trophy = final && rank === 0 ? '<span class="trophy">🏆</span>' : '';
       tr.innerHTML = `<td class="name"><span class="dot" style="background:${p.color}"></span>${escapeHtml(p.name)} ${trophy}</td>` +

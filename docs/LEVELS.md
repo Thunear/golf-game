@@ -82,8 +82,10 @@ The signature Designsystemet mechanic. Used on holes 2, 5 and 8 with rising diff
   a bumper post in the line, or a bank shot required.
 
 **Feedback**
-- Passing through the correct opening: chime, toast "Riktig! Snarveien er åpen", and a small
-  reward (see per-hole notes).
+- Passing through the correct opening: chime, toast "Riktig! −1 slag, og snarveien ligger
+  rett fram", and **one stroke off that hole's score** (never below 1). The HUD shows
+  "Slag n · ★ −1" for the rest of the hole and the scoreboard marks the hole with a ★.
+  So a correct answer helps twice: a shorter route and a better score.
 - Passing through a wrong opening: soft "fail" note, toast "Ikke helt. Den lange veien er
   fortsatt åpen." No stroke penalty; the layout is the penalty.
 - The answer is revealed on the question board after the player has passed any gate

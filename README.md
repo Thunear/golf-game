@@ -80,6 +80,8 @@ For a quick session without deploying, expose your local server with a tunnel su
 - A hole ends when everyone has finished or when the hole clock runs out (2 minutes plus
   45 seconds per player, at most 10 minutes).
 - Stroke limit is 12 per hole. Water and out-of-bounds cost one stroke and put you back where you shot from.
+- Quiz gates (holes 2, 5 and 8): rolling through the door with the right Designsystemet
+  answer takes one stroke off that hole (marked ★ on the scoreboard) and gives the short route.
 - Scoreboard after each hole; final standings at the end. The host can replay or return to the lobby.
 - People can join a room mid-game; they simply start on the current hole.
 

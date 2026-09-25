@@ -84,6 +84,7 @@ class Room {
         strokes: p.strokes,
         done: p.done,
         scores: p.scores,
+        bonuses: p.bonuses,
       })),
     };
   }
@@ -142,6 +143,7 @@ export class RoomManager {
       strokes: 0,
       done: false,
       scores: [],
+      bonuses: [], // holes where a correct quiz answer took a stroke off
     };
     // Late joiners get blanks for holes already played.
     if (room.state !== 'lobby') {
@@ -183,7 +185,7 @@ export class RoomManager {
     if (room.state !== 'lobby' && room.state !== 'finished') return;
     room.startIndex = clampInt(startHole, 0, 17, 0);
     room.holeCount = clampInt(holeCount, 1, 18 - room.startIndex, 9);
-    for (const p of room.players.values()) p.scores = [];
+    for (const p of room.players.values()) { p.scores = []; p.bonuses = []; }
     this.startHole(room, room.startIndex);
   }
 
@@ -262,13 +264,14 @@ export class RoomManager {
     room.turnTimer = null;
   }
 
-  holeDone(socket, { strokes }) {
+  holeDone(socket, { strokes, bonus }) {
     const room = this.roomOf(socket);
     const player = room?.players.get(socket.id);
     if (!room || !player || room.state !== 'playing' || player.done) return;
     player.done = true;
     player.strokes = clampInt(strokes, 1, MAX_STROKES, MAX_STROKES);
     player.scores[room.holeIndex] = player.strokes;
+    player.bonuses[room.holeIndex] = clampInt(bonus, 0, 1, 0) === 1;
     this.io.to(room.code).emit('player:done', {
       id: socket.id,
       strokes: player.strokes,
@@ -313,6 +316,7 @@ export class RoomManager {
     room.holeIndex = -1;
     for (const p of room.players.values()) {
       p.scores = [];
+      p.bonuses = [];
       p.strokes = 0;
       p.done = false;
     }

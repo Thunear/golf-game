@@ -62,5 +62,5 @@ export class Net {
   sendShot() { this.socket.emit('ball:shot'); }
   sendRest() { this.socket.emit('ball:rest'); }
   sendStrokes(strokes) { this.socket.emit('player:strokes', { strokes }); }
-  sendDone(strokes) { this.socket.emit('hole:done', { strokes }); }
+  sendDone(strokes, bonus = 0) { this.socket.emit('hole:done', { strokes, bonus }); }
 }

@@ -248,6 +248,7 @@ select option { color: #111; }
 .table-wrap { overflow-x: auto; }
 #score-table { border-collapse: collapse; width: 100%; font-size: 14px; }
 #score-table th, #score-table td { padding: 8px 10px; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.08); }
+#score-table .star { color: #E5AA20; font-size: 11px; margin-left: 2px; vertical-align: super; }
 #score-table th { color: var(--muted); font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 1px; }
 #score-table td.name, #score-table th.name { text-align: left; }
 #score-table td.name { display: flex; align-items: center; gap: 8px; font-weight: 600; }
