@@ -62,6 +62,7 @@
         <div class="hud-hole-meta"><span id="hud-par">Par 2</span> · <span id="hud-strokes">Slag 0</span></div>
       </div>
       <div class="hud-panel hud-timer" id="hud-timer">3:00</div>
+      <button class="hud-panel hud-help-btn" id="btn-help" title="Slik spiller du" aria-label="Slik spiller du">?</button>
       <div class="hud-panel hud-players" id="hud-players"></div>
       <div class="hud-bottom">
         <div class="power" id="power" hidden>
@@ -80,6 +81,40 @@
     </div>
 
     <!-- Resultater mellom hull og til slutt -->
+    <!-- Slik spiller du: vises første gang du kommer inn i et rom, og via ?-knappen -->
+    <section id="screen-controls" class="screen overlay" hidden>
+      <div class="card controls-card">
+        <h2>Slik spiller du</h2>
+        <ul class="controls-list">
+          <li>
+            <span class="ctl-icon">🎯</span>
+            <div><strong>Sikte og slå</strong><br />Klikk og hold på ballen din, dra <em>bakover</em> (bort fra dit du vil slå) og slipp. Litt drag gir et lite slag, et par centimeter på styreflaten gir full kraft. Pilen viser retning og kraft.</div>
+          </li>
+          <li>
+            <span class="ctl-icon">↩️</span>
+            <div><strong>Angre et slag</strong><br />Trykk <kbd>Esc</kbd> mens du drar, eller dra tilbake til ballen før du slipper.</div>
+          </li>
+          <li>
+            <span class="ctl-icon">🎥</span>
+            <div><strong>Kamera</strong><br />Dra hvor som helst utenfor ballen, eller bruk <kbd>A</kbd> <kbd>D</kbd> / piltastene. <kbd>Q</kbd> <kbd>E</kbd> vipper, rullehjul eller <kbd>W</kbd> <kbd>S</kbd> zoomer.</div>
+          </li>
+          <li>
+            <span class="ctl-icon">🔁</span>
+            <div><strong>Tur for tur</strong><br />Én spiller slår om gangen, og du har 30 sekunder på deg. Når det ikke er din tur, følger kameraet ballen som spilles. <kbd>Tab</kbd> eller mellomrom bytter hvem du ser på.</div>
+          </li>
+          <li>
+            <span class="ctl-icon">📏</span>
+            <div><strong>Regler</strong><br />Maks 12 slag per hull. Vann og utenfor banen koster ett slag og setter ballen tilbake. Lavest sum vinner.</div>
+          </li>
+          <li>
+            <span class="ctl-icon">🔊</span>
+            <div><strong>Lyd</strong><br /><kbd>M</kbd> slår lyden av og på. Denne hjelpen finner du igjen på <kbd>?</kbd>-knappen øverst.</div>
+          </li>
+        </ul>
+        <button id="btn-controls-ok" class="btn primary">Skjønner, la oss spille</button>
+      </div>
+    </section>
+
     <section id="screen-score" class="screen overlay" hidden>
       <div class="card wide">
         <h2 id="score-title">Resultater</h2>

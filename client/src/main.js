@@ -167,6 +167,7 @@ net.on('room:state', (state) => {
       }
       ui.renderRoom(state, myId);
       ui.show('room');
+      if (prev?.state !== 'lobby') ui.showControlsIfNew();
       break;
 
     case 'playing': {

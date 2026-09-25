@@ -63,7 +63,8 @@ For a quick session without deploying, expose your local server with a tunnel su
 
 | Action | Input |
 | --- | --- |
-| Aim + putt | Left-drag from your ball, pull back, release |
+| Aim + putt | Left-drag from your ball, pull back, release (about 150 px of drag is full power, so a short touchpad pull is enough) |
+| Help popup | `?` button in the HUD; shown automatically the first time you enter a room |
 | Rotate camera | Left-drag anywhere else, or `A`/`D` / arrow keys |
 | Tilt camera | `Q` / `E` |
 | Zoom | Scroll wheel, or `W`/`S` |

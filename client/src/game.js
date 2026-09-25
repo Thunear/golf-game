@@ -21,7 +21,11 @@ const MAX_SHOT = 16;
 const DAMPING_GRASS = 0.35;
 const DAMPING_SAND = 0.92;
 const SETTLE_SPEED = 0.4;
-const AIM_RANGE = 4.5;
+// Power comes from how far the pointer has been dragged on screen (CSS pixels), so a
+// short pull on a touchpad reaches full power regardless of zoom. Slightly eased so
+// the first part of the drag is fine-grained.
+const AIM_DEAD_PX = 8;
+const AIM_FULL_PX = 150;
 const NET_INTERVAL = 1 / 15;
 const BLOB_OPACITY = 0.45;
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
@@ -552,6 +556,7 @@ export class Game {
       this.input.last = { x: e.clientX, y: e.clientY };
       if (e.button === 0 && this._canShootNow() && this._hitsBall(e)) {
         this.input.mode = 'aim';
+        this.input.aimStart = { x: e.clientX, y: e.clientY };
         this._updateAim(e);
       } else {
         this.input.mode = 'orbit';
@@ -634,7 +639,10 @@ export class Game {
     const v = new THREE.Vector3(pos.x - hit.x, 0, pos.z - hit.z);
     const len = v.length();
     const aim = this.input.aim;
-    aim.power = clamp((len - 0.15) / AIM_RANGE, 0, 1);
+    const s = this.input.aimStart ?? { x: e.clientX, y: e.clientY };
+    const px = Math.hypot(e.clientX - s.x, e.clientY - s.y);
+    const t = clamp((px - AIM_DEAD_PX) / AIM_FULL_PX, 0, 1);
+    aim.power = t * (2 - t); // ease-out: fine control at the low end, full power by AIM_FULL_PX
     if (len > 0.05) aim.dir.copy(v).normalize();
     this._showArrow(aim);
     this.onEvent('aim', { power: aim.power });

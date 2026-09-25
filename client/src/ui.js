@@ -42,7 +42,14 @@ export class UI {
       again: $('btn-again'),
       toLobby: $('btn-lobby'),
       toasts: $('toasts'),
+      controls: $('screen-controls'),
+      controlsOk: $('btn-controls-ok'),
+      help: $('btn-help'),
     };
+    this.el.controlsOk.addEventListener('click', () => this.hideControls());
+    this.el.help.addEventListener('click', () => this.showControls());
+    this.el.controls.addEventListener('click', (e) => { if (e.target === this.el.controls) this.hideControls(); });
+    window.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !this.el.controls.hidden) this.hideControls(); });
 
     const savedName = localStorage.getItem('dsg-name') ?? localStorage.getItem('ff-name');
     if (savedName) this.el.name.value = savedName;
@@ -126,6 +133,23 @@ export class UI {
       sel.appendChild(o);
     }
     sel.value = String(prev >= 1 && prev <= max ? prev : max);
+  }
+
+  // "Slik spiller du" popup. Shown automatically the first time this browser
+  // enters a room; the ? button in the HUD brings it back.
+  showControls() {
+    this.el.controls.hidden = false;
+    try { localStorage.setItem('dsg-controls-seen', '1'); } catch { /* private mode */ }
+  }
+
+  hideControls() {
+    this.el.controls.hidden = true;
+  }
+
+  showControlsIfNew() {
+    let seen = false;
+    try { seen = localStorage.getItem('dsg-controls-seen') === '1'; } catch { /* ignore */ }
+    if (!seen) this.showControls();
   }
 
   show(screen) {
