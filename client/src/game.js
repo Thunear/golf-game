@@ -423,10 +423,11 @@ export class Game {
           new THREE.MeshStandardMaterial({ color: p.color, roughness: 0.4, transparent: true, opacity: 0.6 })
         );
         mesh.castShadow = false;
+        // The name tag lives in the scene, not on the ball, so it does not spin with it.
         const label = new THREE.Sprite(new THREE.SpriteMaterial({ map: labelTexture(p.name, p.color), depthTest: false, transparent: true }));
         label.scale.set(1.7, 0.425, 1);
-        label.position.y = 0.55;
-        mesh.add(label);
+        label.renderOrder = 10;
+        this.scene.add(label);
         const tee = this.hole?.tee ?? { x: 0, y: 0, z: 0 };
         mesh.position.set(tee.x, tee.y + BALL_R, tee.z);
         this.scene.add(mesh);
@@ -453,7 +454,7 @@ export class Game {
     }
     for (const [id, r] of this.remotes) {
       if (!seen.has(id)) {
-        this.scene.remove(r.mesh, r.blob);
+        this.scene.remove(r.mesh, r.blob, r.label);
         r.mesh.geometry.dispose();
         r.mesh.material.dispose();
         r.blob.geometry.dispose();
@@ -892,6 +893,8 @@ export class Game {
     for (const r of this.remotes.values()) {
       r.mesh.position.lerp(r.target, k);
       r.mesh.quaternion.slerp(r.quat, k);
+      r.label.position.set(r.mesh.position.x, r.mesh.position.y + 0.55, r.mesh.position.z);
+      r.label.visible = r.mesh.visible;
       // Track the ground under a remote ball: whenever it is basically resting
       // at ball height above some level, remember that level.
       const rest = r.mesh.position.y - BALL_R;
