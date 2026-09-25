@@ -115,7 +115,7 @@ export class RoomManager {
 
     socket.on('room:create', (payload, cb) => this.create(socket, payload ?? {}, cbOk(cb)));
     socket.on('room:join', (payload, cb) => this.join(socket, payload ?? {}, cbOk(cb)));
-    socket.on('room:start', (payload) => this.start(socket, payload ?? {}));
+    socket.on('room:start', (payload, cb) => this.start(socket, payload ?? {}, cbOk(cb)));
     socket.on('room:lobby', () => this.toLobby(socket));
     socket.on('room:leave', () => this.leave(socket));
 
@@ -246,10 +246,13 @@ export class RoomManager {
     this.checkAllDone(room);
   }
 
-  start(socket, { holeCount, startHole }) {
+  // Only the host may start (or restart) a game.
+  start(socket, { holeCount, startHole }, cb = () => {}) {
     const room = this.roomOf(socket);
-    if (!room || room.hostId !== socket.id) return;
-    if (room.state !== 'lobby' && room.state !== 'finished') return;
+    if (!room) return cb({ ok: false, error: 'Du er ikke i et rom.' });
+    if (room.hostId !== socket.id) return cb({ ok: false, error: 'Bare verten kan starte spillet.' });
+    if (room.state !== 'lobby' && room.state !== 'finished') return cb({ ok: false, error: 'Spillet er allerede i gang.' });
+    cb({ ok: true });
     room.startIndex = clampInt(startHole, 0, 17, 0);
     room.holeCount = clampInt(holeCount, 1, 18 - room.startIndex, 9);
     for (const p of room.players.values()) { p.scores = []; p.bonuses = []; }
@@ -268,7 +271,10 @@ export class RoomManager {
       p.skips = 0;
     }
     room.timer = setTimeout(() => this.endHole(room), room.holeTimeMs);
-    this.setTurn(room, this.playerAfter(room, null));
+    // A random player opens the hole; the rotation continues in join order from there.
+    const openers = [...room.players.values()].filter((p) => p.connected && !p.done);
+    const opener = openers.length ? openers[Math.floor(Math.random() * openers.length)] : null;
+    this.setTurn(room, opener ?? this.playerAfter(room, null));
     this.broadcast(room);
   }
 

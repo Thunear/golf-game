@@ -74,7 +74,9 @@ For a quick session without deploying, expose your local server with a tunnel su
 ## Rules
 
 - The host picks the starting hole and how many holes to play (up to the end of the course).
-- Play is turn-based: one stroke each, in join order, and everyone watches the ball in play.
+- Only the host can start or restart a game.
+- Play is turn-based: one stroke each, and everyone watches the ball in play. A random
+  player opens each hole; after that the order follows join order.
   You have 45 seconds to take your stroke or the turn passes on; let that happen three times
   in a row and the hole is over for you at the stroke limit. Tab / Space lets a spectator
   look at other balls.

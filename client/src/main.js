@@ -35,7 +35,12 @@ ui.on('join', async ({ name, code }) => {
   history.replaceState(null, '', `?room=${res.code}`);
 });
 
-ui.on('start', ({ holeCount, startHole }) => net.startGame(holeCount, startHole));
+ui.on('start', async ({ holeCount, startHole }) => {
+  // The server enforces this too; the check here just gives instant feedback.
+  if (roomState && roomState.hostId !== net.id) return ui.toast('Bare verten kan starte spillet.');
+  const res = await net.startGame(holeCount, startHole);
+  if (!res.ok) ui.toast(res.error);
+});
 ui.on('lobby', () => net.backToLobby());
 ui.on('leave', () => {
   net.leaveRoom();
@@ -211,7 +216,8 @@ net.on('room:state', (state) => {
       const g = ensureGame();
       const mine = me();
       if (mine) g.setLocalPlayer({ color: mine.color, id: myId });
-      if (g.holeIndex !== state.holeIndex || prev?.state !== 'playing') {
+      const newHole = g.holeIndex !== state.holeIndex || prev?.state !== 'playing';
+      if (newHole) {
         g.startHole(state.holeIndex, state.holeStartAt);
         shotPending = false;
         quizBonus = 0;
@@ -227,7 +233,11 @@ net.on('room:state', (state) => {
       }
       // One stroke at a time: only the player whose turn it is may shoot.
       const myTurn = state.turnId === myId && state.turnPhase === 'aim';
-      if (myTurn && !(prev?.turnId === myId && prev?.turnPhase === 'aim') && !mine?.done) ui.toast('Din tur!');
+      if (myTurn && !(prev?.turnId === myId && prev?.turnPhase === 'aim') && !mine?.done) ui.toast(newHole ? 'Du starter! Din tur.' : 'Din tur!');
+      else if (newHole && state.turnId && state.turnId !== myId) {
+        const opener = state.players.find((p) => p.id === state.turnId);
+        if (opener) ui.toast(`${opener.name} starter.`);
+      }
       g.setPlaying(myTurn);
       g.syncPlayers(state.players, myId);
       g.setTurn(state.turnId);

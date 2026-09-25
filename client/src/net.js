@@ -88,7 +88,7 @@ export class Net {
   rememberedRoom() {
     try { return sessionStorage.getItem('dsg-room'); } catch { return null; }
   }
-  startGame(holeCount, startHole = 0) { this.socket.emit('room:start', { holeCount, startHole }); }
+  startGame(holeCount, startHole = 0) { return this.request('room:start', { holeCount, startHole }); }
   backToLobby() { this.socket.emit('room:lobby'); }
   leaveRoom() {
     this.socket.emit('room:leave');
