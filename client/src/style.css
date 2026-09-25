@@ -194,6 +194,14 @@ select option { color: #111; }
   cursor: pointer; pointer-events: auto; display: flex; align-items: center; justify-content: center;
 }
 .hud-help-btn:hover { background: rgba(30, 50, 36, 0.92); }
+.hud-leave-btn { left: calc(50% - 96px); font-size: 15px; color: var(--muted); }
+.resume {
+  margin-top: 14px; padding: 12px 14px; border-radius: 12px; font-size: 14px;
+  background: rgba(110, 226, 122, 0.08); border: 1px solid rgba(110, 226, 122, 0.35);
+}
+.resume[hidden] { display: none; }
+.resume p { margin: 0 0 10px; }
+.resume .row { display: flex; gap: 8px; }
 .controls-card { max-width: 940px; }
 .controls-card h2 { margin: 0 0 8px; }
 .controls-intro { margin: 0 0 16px; font-size: 14px; line-height: 1.45; color: var(--muted); }

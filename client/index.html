@@ -26,6 +26,13 @@
           <button id="btn-join" class="btn">Bli med</button>
         </div>
         <p id="lobby-error" class="error" hidden></p>
+        <div id="resume-box" class="resume" hidden>
+          <p>Du var med i rom <strong id="resume-code">ABCD</strong>. Plassen din holdes av i halvannet minutt.</p>
+          <div class="row">
+            <button id="btn-resume" class="btn primary small">Bli med igjen</button>
+            <button id="btn-resume-no" class="btn ghost small">Nei, start på nytt</button>
+          </div>
+        </div>
         <p class="hint">Fungerer best på laptop eller PC med mus eller styreflate.</p>
       </div>
     </section>
@@ -63,6 +70,7 @@
       </div>
       <div class="hud-panel hud-timer" id="hud-timer">3:00</div>
       <button class="hud-panel hud-help-btn" id="btn-help" title="Slik spiller du" aria-label="Slik spiller du">?</button>
+      <button class="hud-panel hud-help-btn hud-leave-btn" id="btn-hud-leave" title="Forlat spillet" aria-label="Forlat spillet">⏏</button>
       <div class="hud-panel hud-players" id="hud-players"></div>
       <div class="hud-bottom">
         <div class="power" id="power" hidden>

@@ -18,6 +18,7 @@ ui.show('lobby');
 // ---------- lobby actions ----------
 ui.on('create', async ({ name }) => {
   ui.setError(null);
+  ui.hideResume();
   ui.setBusy(true);
   const res = await net.createRoom(name);
   ui.setBusy(false);
@@ -28,6 +29,7 @@ ui.on('create', async ({ name }) => {
 ui.on('join', async ({ name, code }) => {
   ui.setError(null);
   if (code.length !== 4) return ui.setError('Romkoder har 4 bokstaver.');
+  ui.hideResume();
   ui.setBusy(true);
   const res = await net.joinRoom(code, name);
   ui.setBusy(false);
@@ -71,21 +73,38 @@ net.on('rejoin', (res) => {
   }
 });
 
-// After a reload this tab may still have a seat in a room: take it back quietly.
-let autoJoinTried = false;
-net.on('connect', async () => {
-  if (autoJoinTried) return;
-  autoJoinTried = true;
+// After a reload this tab may still have a seat in a room. A refresh can be an
+// accident or a deliberate fresh start, so ask rather than rejoin silently.
+let resumeOffered = false;
+net.on('connect', () => {
+  if (resumeOffered) return;
+  resumeOffered = true;
   const code = net.rememberedRoom();
   const name = localStorage.getItem('dsg-name');
-  if (!code || !name) return;
+  if (code && name && !roomState) ui.showResume(code);
+});
+
+ui.on('resume', async () => {
+  const code = net.rememberedRoom();
+  const name = localStorage.getItem('dsg-name') ?? 'Spiller';
+  if (!code) return ui.hideResume();
   ui.setBusy(true);
   const res = await net.joinRoom(code, name);
   ui.setBusy(false);
+  ui.hideResume();
   if (res.ok) {
     history.replaceState(null, '', `?room=${res.code}`);
     if (res.rejoined) ui.toast('Velkommen tilbake!');
+  } else {
+    net.forgetRoom();
+    ui.setError(res.error);
   }
+});
+
+ui.on('forget', () => {
+  net.forgetRoom();
+  history.replaceState(null, '', location.pathname);
+  ui.el.code.value = '';
 });
 
 // ---------- game events ----------

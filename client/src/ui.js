@@ -45,7 +45,17 @@ export class UI {
       controls: $('screen-controls'),
       controlsOk: $('btn-controls-ok'),
       help: $('btn-help'),
+      hudLeave: $('btn-hud-leave'),
+      resume: $('resume-box'),
+      resumeCode: $('resume-code'),
+      resumeYes: $('btn-resume'),
+      resumeNo: $('btn-resume-no'),
     };
+    this.el.hudLeave.addEventListener('click', () => {
+      if (confirm('Forlate spillet? Plassen din holdes av i halvannet minutt hvis du ombestemmer deg.')) this.emit('leave');
+    });
+    this.el.resumeYes.addEventListener('click', () => this.emit('resume'));
+    this.el.resumeNo.addEventListener('click', () => { this.hideResume(); this.emit('forget'); });
     this.el.controlsOk.addEventListener('click', () => this.hideControls());
     this.el.help.addEventListener('click', () => this.showControls());
     this.el.controls.addEventListener('click', (e) => { if (e.target === this.el.controls) this.hideControls(); });
@@ -144,6 +154,16 @@ export class UI {
 
   hideControls() {
     this.el.controls.hidden = true;
+  }
+
+  // "You were in room X" box in the lobby after a reload.
+  showResume(code) {
+    this.el.resumeCode.textContent = code;
+    this.el.resume.hidden = false;
+  }
+
+  hideResume() {
+    this.el.resume.hidden = true;
   }
 
   showControlsIfNew() {

@@ -88,6 +88,10 @@ export class Net {
   rememberedRoom() {
     try { return sessionStorage.getItem('dsg-room'); } catch { return null; }
   }
+  forgetRoom() {
+    this.roomCode = null;
+    try { sessionStorage.removeItem('dsg-room'); } catch { /* ignore */ }
+  }
   startGame(holeCount, startHole = 0) { return this.request('room:start', { holeCount, startHole }); }
   backToLobby() { this.socket.emit('room:lobby'); }
   leaveRoom() {
