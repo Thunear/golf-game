@@ -241,6 +241,7 @@ select option { color: #111; }
 .hud-spectate .hint { color: var(--muted); font-size: 13px; margin-left: 8px; }
 .hud-players .p.watching .name::after { content: ' 👁'; font-size: 12px; }
 .hud-players .p.turn .name { color: var(--accent); }
+.hud-players .p.offline, .players li.offline { opacity: 0.45; }
 .hud-players .p.turn .name::before { content: '▶ '; font-size: 10px; }
 .hud-status {
   background: rgba(10, 18, 13, 0.62); border: 1px solid rgba(255,255,255,0.08);

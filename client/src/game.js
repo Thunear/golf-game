@@ -349,6 +349,12 @@ export class Game {
   setPlaying(on) {
     this.playing = on;
     if (!on) this._clearAim();
+    // Our turn: a ball that is standing still but not formally asleep (e.g. woken by
+    // a nudge from a mover) must still be shootable, so put it to sleep now.
+    if (on && !this.ball.finished && this.ball.inWorld) {
+      const body = this.ball.body;
+      if (body.sleepState !== CANNON.Body.SLEEPING && body.velocity.length() < 0.08) body.sleep();
+    }
   }
 
   startHole(index, startAt) {
@@ -869,6 +875,21 @@ export class Game {
     b.settleUntil = performance.now() + SETTLE_MS;
     audio.sink();
     this._finish(b.strokes, true);
+  }
+
+  // The server already has our result for this hole (rejoin after a reload):
+  // park the ball without reporting anything.
+  markDone() {
+    const b = this.ball;
+    if (b.finished) return;
+    b.finished = true;
+    if (b.inWorld) {
+      this.world.removeBody(b.body);
+      b.inWorld = false;
+    }
+    b.ring.visible = false;
+    this._clearAim();
+    this._refreshSpectate();
   }
 
   _finish(strokes, sunk) {

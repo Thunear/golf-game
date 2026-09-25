@@ -172,7 +172,8 @@ export class UI {
       dot.className = 'dot';
       dot.style.background = p.color;
       const name = document.createElement('span');
-      name.textContent = p.name + (p.id === myId ? ' (deg)' : '');
+      name.textContent = p.name + (p.id === myId ? ' (deg)' : '') + (p.connected === false ? ' (frakoblet)' : '');
+      if (p.connected === false) li.classList.add('offline');
       li.append(dot, name);
       if (p.id === state.hostId) {
         const tag = document.createElement('span');
@@ -201,7 +202,7 @@ export class UI {
     for (const p of sorted) {
       const row = document.createElement('div');
       row.className = 'p' + (p.done ? ' done' : '') + (p.id === myId ? ' me' : '') + (p.id === this.spectating ? ' watching' : '') +
-        (p.id === state.turnId ? ' turn' : '');
+        (p.id === state.turnId ? ' turn' : '') + (p.connected === false ? ' offline' : '');
       row.dataset.id = p.id;
       const dot = document.createElement('span');
       dot.className = 'dot';

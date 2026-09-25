@@ -8,8 +8,16 @@ const SCOREBOARD_MS = 8000;
 // stroke, then the turn is skipped; ROLL_TIME_MS is a safety net if a client never
 // reports its ball at rest. The hole clock grows with the number of players.
 const TURN_TIME_MS = Number(process.env.TURN_TIME_MS) || 30000;
-const ROLL_TIME_MS = Number(process.env.ROLL_TIME_MS) || 25000;
+const ROLL_TIME_MS = Number(process.env.ROLL_TIME_MS) || 20000;
 const holeTimeFor = (players) => Math.min(10 * 60 * 1000, 2 * 60 * 1000 + players * 45 * 1000);
+// A player whose socket drops keeps their seat (scores, colour, turn order) this long,
+// so a network blip or a reload does not throw them out of the game.
+const RECONNECT_GRACE_MS = Number(process.env.RECONNECT_GRACE_MS) || 90000;
+
+function cleanToken(t) {
+  const s = String(t ?? '').replace(/[^A-Za-z0-9_-]/g, '').slice(0, 64);
+  return s || null;
+}
 const MAX_PLAYERS = 12;
 const COLORS = [
   '#ff5252', '#3d8bff', '#3ddc84', '#ffd23f', '#ff7ee8', '#ff9a3d',
@@ -83,6 +91,7 @@ class Room {
         color: p.color,
         strokes: p.strokes,
         done: p.done,
+        connected: p.connected,
         scores: p.scores,
         bonuses: p.bonuses,
       })),
@@ -124,7 +133,7 @@ export class RoomManager {
     });
 
     socket.on('hole:done', (payload) => this.holeDone(socket, payload ?? {}));
-    socket.on('disconnect', () => this.leave(socket));
+    socket.on('disconnect', () => this.disconnect(socket));
   }
 
   roomOf(socket) {
@@ -135,9 +144,12 @@ export class RoomManager {
     this.io.to(room.code).emit('room:state', room.snapshot());
   }
 
-  addPlayer(room, socket, name) {
+  addPlayer(room, socket, name, token) {
     const player = {
       id: socket.id,
+      token,
+      connected: true,
+      dropTimer: null,
       name: cleanName(name),
       color: room.pickColor(),
       strokes: 0,
@@ -145,6 +157,7 @@ export class RoomManager {
       scores: [],
       bonuses: [], // holes where a correct quiz answer took a stroke off
     };
+    player.joinedAt = Date.now();
     // Late joiners get blanks for holes already played.
     if (room.state !== 'lobby') {
       for (let i = 0; i < room.holeIndex; i++) player.scores[i] = null;
@@ -160,23 +173,71 @@ export class RoomManager {
     return player;
   }
 
-  create(socket, { name }, cb) {
+  create(socket, { name, token }, cb) {
     if (this.roomOf(socket)) this.leave(socket);
     const room = new Room(makeCode(this.rooms));
     this.rooms.set(room.code, room);
-    this.addPlayer(room, socket, name);
+    this.addPlayer(room, socket, name, cleanToken(token));
     cb({ ok: true, code: room.code, id: socket.id });
     this.broadcast(room);
   }
 
-  join(socket, { code, name }, cb) {
+  join(socket, { code, name, token }, cb) {
     const room = this.rooms.get(String(code ?? '').trim().toUpperCase());
     if (!room) return cb({ ok: false, error: 'Fant ikke rommet. Sjekk koden og prøv igjen.' });
-    if (room.players.size >= MAX_PLAYERS) return cb({ ok: false, error: 'Rommet er fullt.' });
     if (this.roomOf(socket)) this.leave(socket);
-    this.addPlayer(room, socket, name);
+    // Same browser tab coming back (reconnect or reload): take the old seat over.
+    const tok = cleanToken(token);
+    const seat = tok ? [...room.players.values()].find((p) => p.token === tok) : null;
+    if (seat) {
+      this.reseat(room, seat, socket);
+      cb({ ok: true, code: room.code, id: socket.id, rejoined: true, strokes: seat.strokes, done: seat.done });
+      this.broadcast(room);
+      return;
+    }
+    if (room.players.size >= MAX_PLAYERS) return cb({ ok: false, error: 'Rommet er fullt.' });
+    this.addPlayer(room, socket, name, tok);
     cb({ ok: true, code: room.code, id: socket.id });
     this.broadcast(room);
+  }
+
+  // Moves an existing player entry onto a new socket.
+  reseat(room, player, socket) {
+    if (player.dropTimer) clearTimeout(player.dropTimer);
+    player.dropTimer = null;
+    const oldId = player.id;
+    room.players.delete(oldId);
+    player.id = socket.id;
+    player.connected = true;
+    // Keep the original join order so turns stay predictable.
+    const entries = [...room.players.entries()];
+    room.players.clear();
+    let placed = false;
+    for (const [id, p] of entries) {
+      if (!placed && p.joinedAt > player.joinedAt) { room.players.set(player.id, player); placed = true; }
+      room.players.set(id, p);
+    }
+    if (!placed) room.players.set(player.id, player);
+    if (room.hostId === oldId) room.hostId = player.id;
+    if (room.turnId === oldId) room.turnId = player.id;
+    socket.data.code = room.code;
+    socket.join(room.code);
+  }
+
+  // Socket dropped: keep the seat for a while, but never let it hold up the game.
+  disconnect(socket) {
+    const room = this.roomOf(socket);
+    const player = room?.players.get(socket.id);
+    if (!room || !player) return;
+    player.connected = false;
+    socket.data.code = null;
+    if (room.state === 'playing' && room.turnId === player.id) this.setTurn(room, this.playerAfter(room, player.id));
+    player.dropTimer = setTimeout(() => {
+      player.dropTimer = null;
+      if (room.players.get(player.id) === player && !player.connected) this.removePlayer(room, player.id);
+    }, RECONNECT_GRACE_MS);
+    this.broadcast(room);
+    this.checkAllDone(room);
   }
 
   start(socket, { holeCount, startHole }) {
@@ -216,7 +277,7 @@ export class RoomManager {
     const first = idx < 0 ? 0 : 1;
     for (let k = first; k < first + n; k++) {
       const p = order[(Math.max(idx, 0) + k) % n];
-      if (!p.done) return p;
+      if (!p.done && p.connected) return p;
     }
     return null;
   }
@@ -284,7 +345,8 @@ export class RoomManager {
 
   checkAllDone(room) {
     if (room.state !== 'playing') return;
-    const all = [...room.players.values()].every((p) => p.done);
+    // Disconnected players never hold the hole open.
+    const all = [...room.players.values()].every((p) => p.done || !p.connected);
     if (all && room.players.size > 0) this.endHole(room);
   }
 
@@ -326,18 +388,25 @@ export class RoomManager {
   leave(socket) {
     const room = this.roomOf(socket);
     if (!room) return;
-    room.players.delete(socket.id);
     socket.leave(room.code);
     socket.data.code = null;
+    this.removePlayer(room, socket.id);
+  }
+
+  removePlayer(room, id) {
+    const player = room.players.get(id);
+    if (!player) return;
+    if (player.dropTimer) clearTimeout(player.dropTimer);
+    room.players.delete(id);
     if (room.players.size === 0) {
       this.clearTimer(room);
       this.clearTurnTimer(room);
       this.rooms.delete(room.code);
       return;
     }
-    if (room.hostId === socket.id) room.hostId = room.players.keys().next().value;
+    if (room.hostId === id) room.hostId = [...room.players.values()].find((p) => p.connected)?.id ?? room.players.keys().next().value;
     // The leaver had the turn: hand it to the next player still going.
-    if (room.state === 'playing' && room.turnId === socket.id) this.setTurn(room, this.playerAfter(room, null));
+    if (room.state === 'playing' && room.turnId === id) this.setTurn(room, this.playerAfter(room, null));
     this.broadcast(room);
     this.checkAllDone(room);
   }

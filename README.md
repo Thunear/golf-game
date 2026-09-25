@@ -84,6 +84,9 @@ For a quick session without deploying, expose your local server with a tunnel su
   answer takes one stroke off that hole (marked ★ on the scoreboard) and gives the short route.
 - Scoreboard after each hole; final standings at the end. The host can replay or return to the lobby.
 - People can join a room mid-game; they simply start on the current hole.
+- Lost connection or an accidental reload: the server keeps your seat (colour, scores,
+  strokes) for 90 seconds and the tab rejoins by itself. While you are away the turn skips
+  you, so nobody waits on a dropped player.
 
 ## Project layout
 

@@ -53,6 +53,36 @@ net.on('disconnect', () => {
   if (roomState) ui.toast('Mistet forbindelsen. Prøver å koble til igjen…');
 });
 
+// Socket came back and the server gave us our seat again (or not).
+net.on('rejoin', (res) => {
+  if (res.ok) {
+    ui.toast(res.rejoined ? 'Koblet til igjen.' : 'Koblet til igjen som ny spiller.');
+  } else {
+    roomState = null;
+    stopTimer();
+    if (game) { game.destroy(); game = null; }
+    ui.setError(res.error ?? 'Rommet finnes ikke lenger.');
+    ui.show('lobby');
+  }
+});
+
+// After a reload this tab may still have a seat in a room: take it back quietly.
+let autoJoinTried = false;
+net.on('connect', async () => {
+  if (autoJoinTried) return;
+  autoJoinTried = true;
+  const code = net.rememberedRoom();
+  const name = localStorage.getItem('dsg-name');
+  if (!code || !name) return;
+  ui.setBusy(true);
+  const res = await net.joinRoom(code, name);
+  ui.setBusy(false);
+  if (res.ok) {
+    history.replaceState(null, '', `?room=${res.code}`);
+    if (res.rejoined) ui.toast('Velkommen tilbake!');
+  }
+});
+
 // ---------- game events ----------
 function ensureGame() {
   if (game) return game;
@@ -185,6 +215,12 @@ net.on('room:state', (state) => {
         g.startHole(state.holeIndex, state.holeStartAt);
         shotPending = false;
         quizBonus = 0;
+        // Rejoined mid-hole (reload): pick up the stroke count the server kept for us.
+        if (mine?.strokes > 0) {
+          g.ball.strokes = mine.strokes;
+          ui.setStrokes(mine.strokes);
+        }
+        if (mine?.done) g.markDone();
         ui.setPower(null);
         const hole = COURSE.holes[state.holeIndex];
         ui.toast(`Hull ${state.holeIndex + 1}: ${hole.name} · Par ${hole.par}`, hole.intro);
