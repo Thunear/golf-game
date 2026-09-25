@@ -84,7 +84,28 @@
     <!-- Slik spiller du: vises første gang du kommer inn i et rom, og via ?-knappen -->
     <section id="screen-controls" class="screen overlay" hidden>
       <div class="card controls-card">
-        <h2>Slik spiller du</h2>
+        <h2>Velkommen til Designsystemet golf</h2>
+        <p class="controls-intro">Ni hull gjennom historien om en digital tjeneste, fra skisse til lansering. Underveis møter du komponentene fra Designsystemet: knapper du ruller over, kort som forklarer, brytere som sperrer og quizporter som tester hva du kan.</p>
+        <div class="controls-columns">
+        <section>
+        <h3 class="controls-heading">Slik vinner du</h3>
+        <ul class="controls-list">
+          <li>
+            <span class="ctl-icon">🏆</span>
+            <div><strong>Færrest slag vinner</strong><br />Som i golf: få ballen i koppen på så få slag som mulig. Summen over alle hullene avgjør. Maks 12 slag per hull.</div>
+          </li>
+          <li>
+            <span class="ctl-icon">❓</span>
+            <div><strong>Quizportene lønner seg</strong><br />På hull 2, 5 og 8 står en vegg med tre porter og et spørsmål om Designsystemet. Riktig port gir snarveien til koppen <em>og</em> trekker fra ett slag på hullet (★ på resultattavla). Feil port er lov, men gir en lengre vei.</div>
+          </li>
+          <li>
+            <span class="ctl-icon">💧</span>
+            <div><strong>Vann og utenfor banen</strong><br />Koster ett slag og setter ballen tilbake der du slo fra.</div>
+          </li>
+        </ul>
+        </section>
+        <section>
+        <h3 class="controls-heading">Slik styrer du</h3>
         <ul class="controls-list">
           <li>
             <span class="ctl-icon">🎯</span>
@@ -103,14 +124,12 @@
             <div><strong>Tur for tur</strong><br />Én spiller slår om gangen, og du har 30 sekunder på deg. Når det ikke er din tur, følger kameraet ballen som spilles. <kbd>Tab</kbd> eller mellomrom bytter hvem du ser på.</div>
           </li>
           <li>
-            <span class="ctl-icon">📏</span>
-            <div><strong>Regler</strong><br />Maks 12 slag per hull. Vann og utenfor banen koster ett slag og setter ballen tilbake. Lavest sum vinner.</div>
-          </li>
-          <li>
             <span class="ctl-icon">🔊</span>
             <div><strong>Lyd</strong><br /><kbd>M</kbd> slår lyden av og på. Denne hjelpen finner du igjen på <kbd>?</kbd>-knappen øverst.</div>
           </li>
         </ul>
+        </section>
+        </div>
         <button id="btn-controls-ok" class="btn primary">Skjønner, la oss spille</button>
       </div>
     </section>
