@@ -255,6 +255,19 @@ net.on('room:state', (state) => {
 
 net.on('ball:state', (data) => game?.onRemoteBall(data));
 
+net.on('turn:skipped', ({ id, skips, max }) => {
+  if (!roomState) return;
+  const p = roomState.players.find((x) => x.id === id);
+  if (!p) return;
+  if (id === net.id) {
+    ui.toast(skips >= max
+      ? 'Tiden gikk ut tre ganger. Hullet er avsluttet for deg.'
+      : `Tiden gikk ut, turen gikk videre. (${skips} av ${max})`);
+  } else {
+    ui.toast(`${p.name} brukte for lang tid, turen gikk videre.`);
+  }
+});
+
 net.on('player:done', ({ id, strokes, sunk }) => {
   if (id === net.id || !roomState) return;
   const p = roomState.players.find((x) => x.id === id);

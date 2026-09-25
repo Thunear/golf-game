@@ -7,9 +7,13 @@ const SCOREBOARD_MS = 8000;
 // Turn-based: one stroke each, in join order. A player has TURN_TIME_MS to take the
 // stroke, then the turn is skipped; ROLL_TIME_MS is a safety net if a client never
 // reports its ball at rest. The hole clock grows with the number of players.
-const TURN_TIME_MS = Number(process.env.TURN_TIME_MS) || 30000;
+const TURN_TIME_MS = Number(process.env.TURN_TIME_MS) || 45000;
 const ROLL_TIME_MS = Number(process.env.ROLL_TIME_MS) || 20000;
-const holeTimeFor = (players) => Math.min(10 * 60 * 1000, 2 * 60 * 1000 + players * 45 * 1000);
+// Letting the shot clock run out this many times in a row finishes the hole for that
+// player at the stroke limit, so one absent player cannot stall the group. The hole
+// clock itself is only a generous backstop.
+const MAX_SKIPS = Number(process.env.MAX_SKIPS) || 3;
+const holeTimeFor = (players) => Math.min(20 * 60 * 1000, 4 * 60 * 1000 + players * 2 * 60 * 1000);
 // A player whose socket drops keeps their seat (scores, colour, turn order) this long,
 // so a network blip or a reload does not throw them out of the game.
 const RECONNECT_GRACE_MS = Number(process.env.RECONNECT_GRACE_MS) || 90000;
@@ -222,6 +226,8 @@ export class RoomManager {
     if (room.turnId === oldId) room.turnId = player.id;
     socket.data.code = room.code;
     socket.join(room.code);
+    // Everyone else may be done and waiting for us: give us the turn straight away.
+    if (room.state === 'playing' && room.turnId === null && !player.done) this.setTurn(room, player);
   }
 
   // Socket dropped: keep the seat for a while, but never let it hold up the game.
@@ -259,6 +265,7 @@ export class RoomManager {
     for (const p of room.players.values()) {
       p.strokes = 0;
       p.done = false;
+      p.skips = 0;
     }
     room.timer = setTimeout(() => this.endHole(room), room.holeTimeMs);
     this.setTurn(room, this.playerAfter(room, null));
@@ -289,8 +296,13 @@ export class RoomManager {
     room.turnStartedAt = Date.now();
     if (!player) return;
     room.turnTimer = setTimeout(() => {
-      // Took too long to shoot: pass the turn on without a stroke.
-      if (room.state === 'playing' && room.turnId === player.id && room.turnPhase === 'aim') this.nextTurn(room);
+      // Took too long to shoot: pass the turn on without a stroke. Three in a row
+      // and the player is finished at the stroke limit.
+      if (room.state !== 'playing' || room.turnId !== player.id || room.turnPhase !== 'aim') return;
+      player.skips = (player.skips ?? 0) + 1;
+      this.io.to(room.code).emit('turn:skipped', { id: player.id, skips: player.skips, max: MAX_SKIPS });
+      if (player.skips >= MAX_SKIPS) this.finishPlayer(room, player, MAX_STROKES, false);
+      else this.nextTurn(room);
     }, TURN_TIME_MS);
   }
 
@@ -306,6 +318,7 @@ export class RoomManager {
     socket.to(room.code).emit('ball:shot', { id: socket.id });
     if (room.turnId !== socket.id || room.turnPhase !== 'aim') return;
     this.clearTurnTimer(room);
+    room.players.get(socket.id).skips = 0;
     room.turnPhase = 'rolling';
     room.turnStartedAt = Date.now();
     room.turnTimer = setTimeout(() => {
@@ -329,24 +342,32 @@ export class RoomManager {
     const room = this.roomOf(socket);
     const player = room?.players.get(socket.id);
     if (!room || !player || room.state !== 'playing' || player.done) return;
+    this.finishPlayer(room, player, clampInt(strokes, 1, MAX_STROKES, MAX_STROKES), clampInt(bonus, 0, 1, 0) === 1);
+  }
+
+  // Records a player's result for the current hole and moves the turn on if needed.
+  finishPlayer(room, player, strokes, bonus) {
+    if (room.state !== 'playing' || player.done) return;
     player.done = true;
-    player.strokes = clampInt(strokes, 1, MAX_STROKES, MAX_STROKES);
-    player.scores[room.holeIndex] = player.strokes;
-    player.bonuses[room.holeIndex] = clampInt(bonus, 0, 1, 0) === 1;
+    player.strokes = strokes;
+    player.scores[room.holeIndex] = strokes;
+    player.bonuses[room.holeIndex] = !!bonus;
     this.io.to(room.code).emit('player:done', {
-      id: socket.id,
-      strokes: player.strokes,
-      sunk: player.strokes < MAX_STROKES,
+      id: player.id,
+      strokes,
+      sunk: strokes < MAX_STROKES,
     });
-    if (room.turnId === socket.id) this.setTurn(room, this.playerAfter(room, socket.id));
+    if (room.turnId === player.id) this.setTurn(room, this.playerAfter(room, player.id));
     this.broadcast(room);
     this.checkAllDone(room);
   }
 
   checkAllDone(room) {
     if (room.state !== 'playing') return;
-    // Disconnected players never hold the hole open.
-    const all = [...room.players.values()].every((p) => p.done || !p.connected);
+    // Everyone has to be done, including players who are briefly disconnected: their
+    // seat is dropped after the reconnect grace, which re-runs this check. Meanwhile
+    // the turn skips them, so nobody is blocked from playing.
+    const all = [...room.players.values()].every((p) => p.done);
     if (all && room.players.size > 0) this.endHole(room);
   }
 

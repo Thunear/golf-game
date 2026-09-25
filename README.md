@@ -75,10 +75,11 @@ For a quick session without deploying, expose your local server with a tunnel su
 
 - The host picks the starting hole and how many holes to play (up to the end of the course).
 - Play is turn-based: one stroke each, in join order, and everyone watches the ball in play.
-  You have 30 seconds to take your stroke or the turn passes on. Tab / Space lets a spectator
+  You have 45 seconds to take your stroke or the turn passes on; let that happen three times
+  in a row and the hole is over for you at the stroke limit. Tab / Space lets a spectator
   look at other balls.
-- A hole ends when everyone has finished or when the hole clock runs out (2 minutes plus
-  45 seconds per player, at most 10 minutes).
+- A hole ends when everyone has finished. The hole clock (4 minutes plus 2 minutes per
+  player, at most 20 minutes) is only a backstop.
 - Stroke limit is 12 per hole. Water and out-of-bounds cost one stroke and put you back where you shot from.
 - Quiz gates (holes 2, 5 and 8): rolling through the door with the right Designsystemet
   answer takes one stroke off that hole (marked ★ on the scoreboard) and gives the short route.

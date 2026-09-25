@@ -39,7 +39,7 @@ export class Net {
       this.timeOffset = this.timeOffset === 0 ? sample : this.timeOffset * 0.7 + sample * 0.3;
       this.emitLocal('room:state', state);
     });
-    for (const ev of ['ball:state', 'ball:shot', 'player:done']) {
+    for (const ev of ['ball:state', 'ball:shot', 'player:done', 'turn:skipped']) {
       this.socket.on(ev, (data) => this.emitLocal(ev, data));
     }
   }
