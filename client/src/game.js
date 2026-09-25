@@ -228,14 +228,24 @@ export class Game {
     this.scene.add(blob);
 
     // Yellow "your turn" ring on the ground, shown only while a putt is allowed.
+    // Drawn without depth testing so it shows through logs and other obstacles.
     const ring = new THREE.Mesh(
       new THREE.RingGeometry(BALL_R * 1.55, BALL_R * 2.0, 48),
-      new THREE.MeshBasicMaterial({ color: 0xffc81e, transparent: true, opacity: 0.9, depthWrite: false, toneMapped: false })
+      new THREE.MeshBasicMaterial({ color: 0xffc81e, transparent: true, opacity: 0.9, depthWrite: false, depthTest: false, toneMapped: false })
     );
     ring.rotation.x = -Math.PI / 2;
-    ring.renderOrder = 3;
+    ring.renderOrder = 20;
     ring.visible = false;
     this.scene.add(ring);
+    // Faint silhouette of our own ball that also ignores depth, so the ball can be
+    // found behind a wall while it is our turn.
+    const ghost = new THREE.Mesh(
+      new THREE.SphereGeometry(BALL_R * 1.04, 24, 18),
+      new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.35, depthWrite: false, depthTest: false, toneMapped: false })
+    );
+    ghost.renderOrder = 19;
+    ghost.visible = false;
+    this.scene.add(ghost);
 
     const body = new CANNON.Body({
       mass: 1,
@@ -258,6 +268,7 @@ export class Game {
       mesh,
       blob,
       ring,
+      ghost,
       body,
       groundY: 0,
       strokes: 0,
@@ -325,6 +336,7 @@ export class Game {
   setLocalPlayer({ color, id }) {
     this.ball.color = color;
     this.ball.mesh.material.color.set(color);
+    this.ball.ghost.material.color.set(color);
     if (id) this.myId = id;
   }
 
@@ -803,6 +815,7 @@ export class Game {
         // view shows only the players still going.
         b.mesh.visible = false;
         b.blob.visible = false;
+        b.ghost.visible = false;
       }
       return;
     }
@@ -828,6 +841,9 @@ export class Game {
     // Turn ring: visible only while a putt is allowed, with a gentle pulse.
     const ring = b.ring;
     ring.visible = this._canShootNow();
+    // Silhouette through walls while it is our turn (aiming or rolling).
+    b.ghost.visible = this.playing || ring.visible;
+    b.ghost.position.copy(pos);
     if (ring.visible) {
       const pulse = Math.sin(performance.now() * 0.004);
       ring.position.set(pos.x, b.groundY + 0.016, pos.z);
@@ -888,6 +904,7 @@ export class Game {
       b.inWorld = false;
     }
     b.ring.visible = false;
+    b.ghost.visible = false;
     this._clearAim();
     this._refreshSpectate();
   }
@@ -902,6 +919,7 @@ export class Game {
       b.inWorld = false;
     }
     b.ring.visible = false;
+    b.ghost.visible = false;
     this._clearAim();
     const bonus = b.quizBonus ?? 0;
     this.onEvent('done', { strokes: Math.max(1, strokes - bonus), sunk, bonus, rawStrokes: strokes });
